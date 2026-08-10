@@ -30,3 +30,4 @@ exports/
 Thumbs.db
 .idea/
 .vscode/
+.gstack/

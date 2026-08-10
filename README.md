@@ -24,6 +24,24 @@ for threat intelligence:
 
 ---
 
+## Current status
+
+**v0.1.0 MVP — working end to end.** Paste an IOC into the console and get a
+normalized tactical report: risk score, reputation, geolocation, relationship
+graph, community reports and MITRE/NIST/ISO mappings, with PDF/CSV export.
+
+> The bundled MCP providers are **simulated** (`apps/api/app/agents/mcp/`) —
+> they return deterministic mock telemetry so the whole product loop is runnable
+> without external API keys. Real adapters (VirusTotal, AbuseIPDB, Shodan,
+> Firecrawl) plug into the same `McpClient` protocol; see the roadmap in
+> [`docs/execution-plan.md`](docs/execution-plan.md).
+
+## Preview
+
+![HuntDeck investigation console](docs/huntdeck-investigation.png)
+
+---
+
 ## Quick start
 
 The default repo state runs **without any external accounts**: the API ships with

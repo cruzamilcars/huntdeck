@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+.pnpm-store/
+.venv/
+venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# build output
+.next/
+next-env.d.ts
+dist/
+build/
+coverage/
+exports/
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# runtime logs
+.logs/
+
+# local tooling
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

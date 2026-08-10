@@ -1,0 +1,15 @@
+# Build context is the repo root. Keep the Docker daemon context small.
+node_modules/
+apps/web/node_modules/
+apps/web/.next/
+.next/
+__pycache__/
+.pytest_cache/
+.env
+.env.*
+!.env.example
+.logs/
+exports/
+.git/
+docs/
+supabase/

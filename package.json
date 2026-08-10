@@ -1,0 +1,22 @@
+{
+  "name": "osint-mcp-hub",
+  "private": true,
+  "packageManager": "npm@11.6.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "overrides": {
+    "postcss": "^8.5.15",
+    "next": {
+      "postcss": "^8.5.15"
+    }
+  },
+  "scripts": {
+    "dev:web": "npm --workspace apps/web run dev",
+    "dev:api": "cd apps/api && uvicorn app.main:app --reload",
+    "lint": "npm --workspace apps/web run lint",
+    "build:web": "npm --workspace apps/web run build",
+    "test:api": "cd apps/api && python -m pytest"
+  }
+}

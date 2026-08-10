@@ -31,10 +31,10 @@ normalized tactical report: risk score, reputation, geolocation, relationship
 graph, community reports and MITRE/NIST/ISO mappings, with PDF/CSV export.
 
 > **Provider status:** the MCP providers ship as mocks (`apps/api/app/agents/mcp/`)
-> so the whole product loop is runnable without external API keys. The
-> **VirusTotal adapter is real** — set `VIRUSTOTAL_API_KEY` to query live data
-> (file hashes, IPs, domains, URLs); AbuseIPDB, Shodan and Firecrawl
-> are next on the roadmap (see open issues).
+> so the whole product loop is runnable without external API keys. **VirusTotal,
+> AbuseIPDB and Shodan adapters are real** — set the corresponding
+> `*_API_KEY` env vars to query live data (defaults to mocks when unset).
+> Firecrawl is next on the roadmap (see open issues).
 
 ## Preview
 

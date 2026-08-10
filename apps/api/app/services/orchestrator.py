@@ -12,6 +12,8 @@ from app.schemas.investigation import (
 
 
 def _default_clients() -> dict[str, McpClient]:
+    from app.agents.mcp.abuseipdb import AbuseIpdbMcpClient
+    from app.agents.mcp.shodan import ShodanMcpClient
     from app.agents.mcp.virustotal import VirusTotalMcpClient
     from app.core.config import get_settings
 
@@ -21,9 +23,13 @@ def _default_clients() -> dict[str, McpClient]:
         "mcp-abuseipdb": MockMcpClient("mcp-abuseipdb"),
         "mcp-firecrawl": MockMcpClient("mcp-firecrawl"),
     }
-    api_key = get_settings().virustotal_api_key
-    if api_key:
-        clients["mcp-virustotal"] = VirusTotalMcpClient(api_key=api_key)
+    settings = get_settings()
+    if settings.virustotal_api_key:
+        clients["mcp-virustotal"] = VirusTotalMcpClient(api_key=settings.virustotal_api_key)
+    if settings.abuseipdb_api_key:
+        clients["mcp-abuseipdb"] = AbuseIpdbMcpClient(api_key=settings.abuseipdb_api_key)
+    if settings.shodan_api_key:
+        clients["mcp-shodan"] = ShodanMcpClient(api_key=settings.shodan_api_key)
     return clients
 
 

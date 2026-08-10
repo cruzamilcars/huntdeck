@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 60
     supabase_jwt_secret: str | None = None
     virustotal_api_key: str | None = None
+    abuseipdb_api_key: str | None = None
+    shodan_api_key: str | None = None
     api_cors_origins: list[AnyHttpUrl] = Field(
         default=["http://localhost:3000", "http://127.0.0.1:3000"]
     )

@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     virustotal_api_key: str | None = None
     abuseipdb_api_key: str | None = None
     shodan_api_key: str | None = None
+    urlscan_api_key: str | None = None
+    database_path: str = Field(
+        default="data/huntdeck.db", description="Local durable store (SQLite) path"
+    )
     api_cors_origins: list[AnyHttpUrl] = Field(
         default=["http://localhost:3000", "http://127.0.0.1:3000"]
     )

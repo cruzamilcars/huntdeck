@@ -14,6 +14,7 @@ from app.schemas.investigation import (
 def _default_clients() -> dict[str, McpClient]:
     from app.agents.mcp.abuseipdb import AbuseIpdbMcpClient
     from app.agents.mcp.shodan import ShodanMcpClient
+    from app.agents.mcp.urlscan import UrlScanMcpClient
     from app.agents.mcp.virustotal import VirusTotalMcpClient
     from app.core.config import get_settings
 
@@ -21,6 +22,7 @@ def _default_clients() -> dict[str, McpClient]:
         "mcp-virustotal": MockMcpClient("mcp-virustotal"),
         "mcp-shodan": MockMcpClient("mcp-shodan"),
         "mcp-abuseipdb": MockMcpClient("mcp-abuseipdb"),
+        "mcp-urlscan": MockMcpClient("mcp-urlscan"),
         "mcp-firecrawl": MockMcpClient("mcp-firecrawl"),
     }
     settings = get_settings()
@@ -30,6 +32,8 @@ def _default_clients() -> dict[str, McpClient]:
         clients["mcp-abuseipdb"] = AbuseIpdbMcpClient(api_key=settings.abuseipdb_api_key)
     if settings.shodan_api_key:
         clients["mcp-shodan"] = ShodanMcpClient(api_key=settings.shodan_api_key)
+    if settings.urlscan_api_key:
+        clients["mcp-urlscan"] = UrlScanMcpClient(api_key=settings.urlscan_api_key)
     return clients
 
 
@@ -69,9 +73,9 @@ class InvestigationOrchestrator:
             case IocType.IPV4 | IocType.IPV6:
                 return ["mcp-virustotal", "mcp-shodan", "mcp-abuseipdb"]
             case IocType.DOMAIN:
-                return ["mcp-virustotal", "mcp-shodan", "mcp-firecrawl"]
+                return ["mcp-virustotal", "mcp-shodan", "mcp-urlscan"]
             case IocType.URL:
-                return ["mcp-virustotal", "mcp-firecrawl"]
+                return ["mcp-virustotal", "mcp-urlscan"]
             case IocType.MD5 | IocType.SHA1 | IocType.SHA256:
                 return ["mcp-virustotal"]
             case IocType.EMAIL | IocType.PHONE:

@@ -59,4 +59,56 @@ class InMemoryQuotaService:
             )
 
 
-quota_service = InMemoryQuotaService()
+class SqliteQuotaService:
+    """Quota backed by the durable SQLite store.
+
+    Same decision flow as InMemoryQuotaService, but usage survives process
+    restarts via the shared store.
+    """
+
+    def __init__(self, quota_store) -> None:
+        self._store = quota_store
+
+    def reserve(
+        self,
+        user: CurrentUser,
+        daily_free_quota: int,
+        byok_providers: set[str],
+    ) -> QuotaDecision:
+        allowed, used_byok, free, byok, reason = self._store.reserve_usage(
+            user,
+            datetime.now(UTC).date(),
+            daily_free_quota,
+            byok_providers,
+        )
+        return QuotaDecision(
+            allowed=allowed,
+            used_byok=used_byok,
+            free_queries_used=free,
+            byok_queries_used=byok,
+            reason=reason,
+        )
+
+
+def _build_quota_service():
+    from app.core.config import get_settings
+    from app.infrastructure.store import SqliteStore
+
+    store = SqliteStore(get_settings().database_path)
+    return SqliteQuotaService(store), store
+
+
+_quota_service = None
+_quota_store = None
+
+
+def get_quota_service() -> SqliteQuotaService:
+    global _quota_service, _quota_store
+    if _quota_service is None:
+        _quota_service, _quota_store = _build_quota_service()
+    return _quota_service
+
+
+def get_quota_store():
+    get_quota_service()
+    return _quota_store

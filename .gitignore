@@ -25,6 +25,9 @@ exports/
 # runtime logs
 .logs/
 
+# local durable store (SQLite)
+data/
+
 # local tooling
 .DS_Store
 Thumbs.db

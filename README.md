@@ -30,11 +30,18 @@ for threat intelligence:
 normalized tactical report: risk score, reputation, geolocation, relationship
 graph, community reports and MITRE/NIST/ISO mappings, with PDF/CSV export.
 
-> **Provider status:** the MCP providers ship as mocks (`apps/api/app/agents/mcp/`)
-> so the whole product loop is runnable without external API keys. **VirusTotal,
-> AbuseIPDB and Shodan adapters are real** — set the corresponding
-> `*_API_KEY` env vars to query live data (defaults to mocks when unset).
-> Firecrawl is next on the roadmap (see open issues).
+> **Provider status:** **VirusTotal, AbuseIPDB, Shodan and urlscan.io are real
+> adapters** — set the corresponding `*_API_KEY` env vars to query live data
+> (defaults to mocks when unset). urlscan.io is the evaluated alternative to
+> Firecrawl for URL/DOMAIN web-harvesting: richer reputation signal, free tier,
+> no payment gateway. Firecrawl remains a mock for EMAIL/PHONE lookups only.
+
+> **Persistence:** investigations and daily quota are stored durably in a local
+> SQLite store (`DATABASE_PATH`, default `data/huntdeck.db`) — no external
+> service required; quota survives restarts and `GET /api/v1/investigations/history`
+> returns recent investigations. The Supabase schema in
+> `supabase/migrations/001_initial_schema.sql` mirrors these rows and is the
+> production target (wired via `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`).
 
 ## Preview
 
@@ -96,7 +103,11 @@ Copy `.env.example` → split the variables into the files each app reads:
 | `API_CORS_ORIGINS` | Allowed CORS origins, comma-separated. |
 | `DAILY_FREE_QUOTA` | Free investigations per user/org/day (default `10`). |
 | `RATE_LIMIT_PER_MINUTE` | API requests per IP per minute (default `60`). |
-| `VIRUSTOTAL_API_KEY` | Optional. When set, the API queries real VirusTotal data (falls back to the mock adapter when unset). |
+| `VIRUSTOTAL_API_KEY` | Optional. Real VirusTotal adapter (hash/IP/domain/URL). Falls back to mock when unset. |
+| `ABUSEIPDB_API_KEY` | Optional. Real AbuseIPDB adapter (IPv4). Falls back to mock when unset. |
+| `SHODAN_API_KEY` | Optional. Real Shodan adapter (IP host data + DNS). Falls back to mock when unset. |
+| `URLSCAN_API_KEY` | Optional. Real urlscan.io adapter (URL/domain reputation). Falls back to mock when unset. |
+| `DATABASE_PATH` | Local durable store path (default `data/huntdeck.db`). |
 
 ### Authentication (optional)
 
@@ -175,9 +186,10 @@ osint-mcp-hub/
 | 4 | Supabase Auth wiring, JWT checks, quota, BYOK fallback | Done (core) |
 | 5 | Hardening: rate limit, security headers, strict validation, exports | Done |
 
-See [`docs/execution-plan.md`](docs/execution-plan.md) for details. The MCP
-clients ship as mocks (`apps/api/app/agents/mcp/`); real provider adapters plug
-into the same `McpClient` protocol.
+See [`docs/execution-plan.md`](docs/execution-plan.md) for details. Real
+provider adapters (VirusTotal, AbuseIPDB, Shodan, urlscan.io) plug into the
+same `McpClient` protocol; see the roadmap in the open issues and the provider
+status note above.
 
 ## Development
 

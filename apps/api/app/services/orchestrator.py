@@ -11,14 +11,25 @@ from app.schemas.investigation import (
 )
 
 
+def _default_clients() -> dict[str, McpClient]:
+    from app.agents.mcp.virustotal import VirusTotalMcpClient
+    from app.core.config import get_settings
+
+    clients: dict[str, McpClient] = {
+        "mcp-virustotal": MockMcpClient("mcp-virustotal"),
+        "mcp-shodan": MockMcpClient("mcp-shodan"),
+        "mcp-abuseipdb": MockMcpClient("mcp-abuseipdb"),
+        "mcp-firecrawl": MockMcpClient("mcp-firecrawl"),
+    }
+    api_key = get_settings().virustotal_api_key
+    if api_key:
+        clients["mcp-virustotal"] = VirusTotalMcpClient(api_key=api_key)
+    return clients
+
+
 class InvestigationOrchestrator:
     def __init__(self, clients: dict[str, McpClient] | None = None) -> None:
-        self.clients = clients or {
-            "mcp-virustotal": MockMcpClient("mcp-virustotal"),
-            "mcp-shodan": MockMcpClient("mcp-shodan"),
-            "mcp-abuseipdb": MockMcpClient("mcp-abuseipdb"),
-            "mcp-firecrawl": MockMcpClient("mcp-firecrawl"),
-        }
+        self.clients = clients or _default_clients()
 
     async def investigate(
         self,
@@ -174,4 +185,4 @@ class InvestigationOrchestrator:
 
 
 def get_orchestrator() -> InvestigationOrchestrator:
-    return InvestigationOrchestrator()
+    return InvestigationOrchestrator(clients=_default_clients())

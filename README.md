@@ -30,11 +30,11 @@ for threat intelligence:
 normalized tactical report: risk score, reputation, geolocation, relationship
 graph, community reports and MITRE/NIST/ISO mappings, with PDF/CSV export.
 
-> The bundled MCP providers are **simulated** (`apps/api/app/agents/mcp/`) —
-> they return deterministic mock telemetry so the whole product loop is runnable
-> without external API keys. Real adapters (VirusTotal, AbuseIPDB, Shodan,
-> Firecrawl) plug into the same `McpClient` protocol; see the roadmap in
-> [`docs/execution-plan.md`](docs/execution-plan.md).
+> **Provider status:** the MCP providers ship as mocks (`apps/api/app/agents/mcp/`)
+> so the whole product loop is runnable without external API keys. The
+> **VirusTotal adapter is real** — set `VIRUSTOTAL_API_KEY` to query live data
+> (file hashes, IPs, domains, URLs); AbuseIPDB, Shodan and Firecrawl
+> are next on the roadmap (see open issues).
 
 ## Preview
 
@@ -96,7 +96,7 @@ Copy `.env.example` → split the variables into the files each app reads:
 | `API_CORS_ORIGINS` | Allowed CORS origins, comma-separated. |
 | `DAILY_FREE_QUOTA` | Free investigations per user/org/day (default `10`). |
 | `RATE_LIMIT_PER_MINUTE` | API requests per IP per minute (default `60`). |
-| `VIRUSTOTAL_API_KEY` etc. | Provider keys for platform-funded quota (mock providers ignore them for now). |
+| `VIRUSTOTAL_API_KEY` | Optional. When set, the API queries real VirusTotal data (falls back to the mock adapter when unset). |
 
 ### Authentication (optional)
 

@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     daily_free_quota: int = Field(default=10, description="Daily free quota (default 10)")
     rate_limit_per_minute: int = 60
     supabase_jwt_secret: str | None = None
+    virustotal_api_key: str | None = None
     api_cors_origins: list[AnyHttpUrl] = Field(
         default=["http://localhost:3000", "http://127.0.0.1:3000"]
     )

@@ -30,3 +30,39 @@ export async function investigateIoc(
 
   return response.json();
 }
+
+export interface InvestigationHistoryRow {
+  raw_ioc: string;
+  normalized_ioc: string;
+  ioc_type: string;
+  risk_score: number | null;
+  severity: string | null;
+  sources: string;
+  used_byok: number;
+  created_at: string;
+}
+
+export async function fetchInvestigationHistory(
+  session: SessionContext | null = null,
+  limit = 20
+): Promise<InvestigationHistoryRow[]> {
+  const headers: Record<string, string> = {};
+  if (session?.accessToken) {
+    headers.Authorization = `Bearer ${session.accessToken}`;
+  }
+  if (session?.orgId) {
+    headers["X-Org-Id"] = session.orgId;
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/investigations/history?limit=${limit}`,
+    { headers }
+  );
+
+  if (!response.ok) {
+    const detail = await response.json().catch(() => null);
+    throw new Error(detail?.detail ?? "Failed to load history.");
+  }
+
+  return response.json();
+}

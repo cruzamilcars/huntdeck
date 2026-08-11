@@ -91,10 +91,28 @@ class SqliteQuotaService:
 
 
 def _build_quota_service():
+    import logging
+
     from app.core.config import get_settings
     from app.infrastructure.store import SqliteStore
+    from app.infrastructure.supabase_store import SupabaseStore
 
-    store = SqliteStore(get_settings().database_path)
+    log = logging.getLogger(__name__)
+    settings = get_settings()
+
+    if settings.supabase_url and settings.supabase_service_role_key:
+        store = SupabaseStore(
+            url=settings.supabase_url,
+            service_role_key=settings.supabase_service_role_key,
+        )
+        log.info("Quota store: Supabase (PostgREST, service role)")
+    else:
+        store = SqliteStore(settings.database_path)
+        log.info(
+            "Quota store: local SQLite (%s). Set SUPABASE_URL and "
+            "SUPABASE_SERVICE_ROLE_KEY to switch to Supabase persistence.",
+            settings.database_path,
+        )
     return SqliteQuotaService(store), store
 
 

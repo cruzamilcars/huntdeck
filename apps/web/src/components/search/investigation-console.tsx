@@ -1,12 +1,16 @@
 "use client";
 
-import { AlertTriangle, FileText, Loader2, Search, User } from "lucide-react";
+import { AlertTriangle, FileText, History, Loader2, Search, User } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 
 import { ExportControls } from "@/components/export/export-controls";
 import { ResultsGrid } from "@/components/results/results-grid";
 import { Shell } from "@/components/layout/shell";
-import { investigateIoc } from "@/lib/api/investigations";
+import {
+  fetchInvestigationHistory,
+  investigateIoc,
+  type InvestigationHistoryRow,
+} from "@/lib/api/investigations";
 import { getSessionContext, type SessionContext } from "@/lib/api/session";
 import type { InvestigationResponse } from "@/lib/api/types";
 
@@ -16,10 +20,41 @@ export function InvestigationConsole() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState<SessionContext | null>(null);
+  const [history, setHistory] = useState<InvestigationHistoryRow[]>([]);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+
+  async function loadHistory() {
+    try {
+      setHistory(await fetchInvestigationHistory(session, 20));
+      setHistoryError(null);
+    } catch (err) {
+      setHistoryError(err instanceof Error ? err.message : "Failed to load history.");
+    }
+  }
 
   useEffect(() => {
     getSessionContext().then(setSession);
   }, []);
+
+  useEffect(() => {
+    if (session) {
+      let cancelled = false;
+      fetchInvestigationHistory(session, 20)
+        .then((rows) => {
+          if (!cancelled) {
+            setHistory(rows);
+          }
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            setHistoryError(err instanceof Error ? err.message : "Failed to load history.");
+          }
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
+  }, [session]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -27,6 +62,7 @@ export function InvestigationConsole() {
     setError(null);
     try {
       setResult(await investigateIoc(ioc, session));
+      loadHistory();
     } catch (err) {
       setResult(null);
       setError(err instanceof Error ? err.message : "Investigation failed.");
@@ -127,6 +163,38 @@ export function InvestigationConsole() {
           Export ready
         </div>
       ) : null}
+
+      <section className="brutal-panel mb-4 p-4">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 text-xs uppercase text-[var(--muted)]">
+            <History size={12} />
+            Recent investigations
+          </h2>
+          <p className="text-xs uppercase text-[var(--muted)]">Last 20</p>
+        </div>
+        {historyError ? (
+          <p className="text-xs uppercase text-[var(--danger)]">{historyError}</p>
+        ) : history.length === 0 ? (
+          <p className="text-xs uppercase text-[var(--muted)]">
+            No investigations yet. Submit an IOC to populate history.
+          </p>
+        ) : (
+          <ul className="divide-y divide-[var(--muted-line)]">
+            {history.map((row) => (
+              <li key={`${row.created_at}-${row.normalized_ioc}`} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
+                <span className="min-w-0 flex-1 truncate font-bold uppercase">{row.normalized_ioc}</span>
+                <span className="w-16 text-right text-xs uppercase text-[var(--muted)]">{row.ioc_type}</span>
+                <span className="w-24 text-right text-xs uppercase text-[var(--warning)]">
+                  {row.severity ?? "unknown"} / {row.risk_score ?? "-"}
+                </span>
+                <span className="hidden w-32 text-right text-xs uppercase text-[var(--muted)] md:inline">
+                  {new Date(row.created_at).toLocaleString()}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </Shell>
   );
 }

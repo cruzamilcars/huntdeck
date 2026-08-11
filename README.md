@@ -36,12 +36,15 @@ graph, community reports and MITRE/NIST/ISO mappings, with PDF/CSV export.
 > Firecrawl for URL/DOMAIN web-harvesting: richer reputation signal, free tier,
 > no payment gateway. Firecrawl remains a mock for EMAIL/PHONE lookups only.
 
-> **Persistence:** investigations and daily quota are stored durably in a local
-> SQLite store (`DATABASE_PATH`, default `data/huntdeck.db`) — no external
-> service required; quota survives restarts and `GET /api/v1/investigations/history`
-> returns recent investigations. The Supabase schema in
-> `supabase/migrations/001_initial_schema.sql` mirrors these rows and is the
-> production target (wired via `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`).
+> **Persistence:** investigations and daily quota are stored durably — no external
+> service required by default: a local SQLite store (`DATABASE_PATH`, default
+> `data/huntdeck.db`) makes quota survive restarts and `GET /api/v1/investigations/history`
+> returns recent investigations. When `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`
+> are both set, the API switches to the **Supabase store** (PostgREST with the
+> service-role key) and reserves quota atomically via the
+> `reserve_daily_usage` RPC (see `supabase/migrations/002_quota_reserve_rpc.sql`).
+> Apply `supabase/migrations/001_initial_schema.sql` + `002_quota_reserve_rpc.sql`
+> against a Supabase project to activate it.
 
 ## Preview
 
@@ -107,13 +110,15 @@ Copy `.env.example` → split the variables into the files each app reads:
 | `ABUSEIPDB_API_KEY` | Optional. Real AbuseIPDB adapter (IPv4). Falls back to mock when unset. |
 | `SHODAN_API_KEY` | Optional. Real Shodan adapter (IP host data + DNS). Falls back to mock when unset. |
 | `URLSCAN_API_KEY` | Optional. Real urlscan.io adapter (URL/domain reputation). Falls back to mock when unset. |
+| `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | Optional. Enables the Supabase store (PostgREST persistence + atomic quota RPC). Falls back to local SQLite when unset. |
 | `DATABASE_PATH` | Local durable store path (default `data/huntdeck.db`). |
 
 ### Authentication (optional)
 
-Run `supabase/migrations/001_initial_schema.sql` against a Supabase project
-(auth tables, RLS, Vault-backed BYOK RPCs are included). Then set the env vars
-above and restart both apps. `http://localhost:3000/login` and `/register` become
+Run `supabase/migrations/001_initial_schema.sql` **and**
+`supabase/migrations/002_quota_reserve_rpc.sql` against a Supabase project
+(auth tables, RLS, Vault-backed BYOK RPCs and the atomic quota RPC are included).
+Then set the env vars above and restart both apps. `http://localhost:3000/login` and `/register` become
 active; the investigation calls are signed with the session JWT and scoped per
 organization when `default_org_id` user metadata is present.
 

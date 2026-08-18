@@ -24,6 +24,7 @@ exports/
 
 # runtime logs
 .logs/
+*.log
 
 # local durable store (SQLite)
 data/

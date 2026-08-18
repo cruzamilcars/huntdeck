@@ -9,7 +9,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <p className="text-xs text-[var(--muted)]">CLOUD OSINT / MCP ORCHESTRATION</p>
           <h1 className="mt-1 text-xl font-black uppercase md:text-3xl">OSINT MCP HUB</h1>
         </div>
-        <div className="grid grid-cols-4 divide-x divide-[var(--muted-line)] text-center text-xs uppercase">
+        <div className="grid grid-cols-5 divide-x divide-[var(--muted-line)] text-center text-xs uppercase">
           <div className="p-3">
             <p className="text-[var(--muted)]">Mode</p>
             <p className="text-[var(--warning)]">Community</p>
@@ -21,6 +21,12 @@ export function Shell({ children }: { children: ReactNode }) {
           <div className="p-3">
             <p className="text-[var(--muted)]">MCP</p>
             <p>Mock</p>
+          </div>
+          <div className="p-3">
+            <p className="text-[var(--muted)]">Panel</p>
+            <Link href="/investigate" className="text-[var(--warning)] underline">
+              Console
+            </Link>
           </div>
           <div className="p-3">
             <p className="text-[var(--muted)]">Auth</p>

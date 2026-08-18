@@ -2,7 +2,13 @@ import type { InvestigationResponse } from "@/lib/api/types";
 
 import { ModulePanel } from "./module-panel";
 
-export function ResultsGrid({ result }: { result: InvestigationResponse }) {
+export function ResultsGrid({
+  result,
+  onPivot,
+}: {
+  result: InvestigationResponse;
+  onPivot?: (ioc: string) => void;
+}) {
   const reputationEntries = Object.entries(result.modules.reputation);
   const geolocationEntries = Object.entries(result.modules.geolocation);
   const graph = result.modules.relationship_graph;
@@ -50,11 +56,25 @@ export function ResultsGrid({ result }: { result: InvestigationResponse }) {
       <ModulePanel title="Relationship Graph" meta={`${graph.edges.length} edges`}>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <p className="mb-2 text-xs uppercase text-[var(--muted)]">Nodes</p>
+            <p className="mb-2 text-xs uppercase text-[var(--muted)]">
+              Nodes {onPivot ? "· click to pivot" : ""}
+            </p>
             <ul className="space-y-2">
               {graph.nodes.map((node) => (
                 <li key={node.id} className="border border-[var(--muted-line)] px-2 py-1 text-xs">
-                  <span className="text-[var(--warning)]">{node.type}</span> {node.id}
+                  {onPivot ? (
+                    <button
+                      type="button"
+                      onClick={() => onPivot(node.id)}
+                      title={`Investigate ${node.id}`}
+                      className="break-all text-left text-[var(--warning)] underline hover:text-white"
+                    >
+                      {node.id}
+                    </button>
+                  ) : (
+                    <span className="break-all">{node.id}</span>
+                  )}
+                  <span className="ml-2 text-[var(--muted)]">{node.type}</span>
                 </li>
               ))}
             </ul>

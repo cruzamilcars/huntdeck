@@ -8,6 +8,7 @@ export type IocType =
   | "sha256"
   | "email"
   | "phone"
+  | "social_handle"
   | "unknown";
 
 export type Severity = "unknown" | "low" | "medium" | "high" | "critical";

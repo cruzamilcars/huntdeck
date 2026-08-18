@@ -1,11 +1,13 @@
 "use client";
 
 import { AlertTriangle, FileText, History, Loader2, Search, User } from "lucide-react";
+import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 
 import { ExportControls } from "@/components/export/export-controls";
 import { ResultsGrid } from "@/components/results/results-grid";
 import { Shell } from "@/components/layout/shell";
+import { WatchlistPanel } from "@/components/watchlist/watchlist-panel";
 import {
   fetchInvestigationHistory,
   investigateIoc,
@@ -56,12 +58,11 @@ export function InvestigationConsole() {
     }
   }, [session]);
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function runInvestigation(iocValue: string) {
     setLoading(true);
     setError(null);
     try {
-      setResult(await investigateIoc(ioc, session));
+      setResult(await investigateIoc(iocValue, session));
       loadHistory();
     } catch (err) {
       setResult(null);
@@ -69,6 +70,16 @@ export function InvestigationConsole() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handlePivot(iocValue: string) {
+    setIoc(iocValue);
+    runInvestigation(iocValue);
+  }
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    runInvestigation(ioc);
   }
 
   return (
@@ -140,7 +151,7 @@ export function InvestigationConsole() {
             </div>
           </section>
           <ExportControls result={result} />
-          <ResultsGrid result={result} />
+          <ResultsGrid result={result} onPivot={handlePivot} />
         </>
       ) : (
         <div className="muted-panel grid min-h-[320px] place-items-center p-8 text-center">
@@ -164,13 +175,22 @@ export function InvestigationConsole() {
         </div>
       ) : null}
 
+      <section className="mb-4">
+        <WatchlistPanel onRecheckResult={(recheckResult) => setResult(recheckResult)} />
+      </section>
+
       <section className="brutal-panel mb-4 p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 text-xs uppercase text-[var(--muted)]">
             <History size={12} />
             Recent investigations
           </h2>
-          <p className="text-xs uppercase text-[var(--muted)]">Last 20</p>
+          <div className="flex items-center gap-4">
+            <p className="text-xs uppercase text-[var(--muted)]">Last 20</p>
+            <Link href="/dashboard" className="text-xs uppercase text-[var(--warning)] underline">
+              Dashboard
+            </Link>
+          </div>
         </div>
         {historyError ? (
           <p className="text-xs uppercase text-[var(--danger)]">{historyError}</p>

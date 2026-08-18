@@ -30,21 +30,29 @@ for threat intelligence:
 normalized tactical report: risk score, reputation, geolocation, relationship
 graph, community reports and MITRE/NIST/ISO mappings, with PDF/CSV export.
 
-> **Provider status:** **VirusTotal, AbuseIPDB, Shodan and urlscan.io are real
-> adapters** — set the corresponding `*_API_KEY` env vars to query live data
-> (defaults to mocks when unset). urlscan.io is the evaluated alternative to
-> Firecrawl for URL/DOMAIN web-harvesting: richer reputation signal, free tier,
-> no payment gateway. Firecrawl remains a mock for EMAIL/PHONE lookups only.
+> **Provider status:** **VirusTotal, AbuseIPDB, Shodan, urlscan.io and RDAP are
+> real adapters** — the first four need the corresponding `*_API_KEY` env vars
+> (defaults to mocks when unset); **RDAP/WHOIS is always live** (bootstrap
+> registry at rdap.org, no key) and enriches every IP/domain investigation with
+> registrar, dates, nameservers and contact country. urlscan.io is the evaluated
+> alternative to Firecrawl for URL/DOMAIN web-harvesting: richer reputation
+> signal, free tier, no payment gateway. Firecrawl remains a mock for
+> EMAIL/PHONE/SOCIAL lookups only.
 
-> **Persistence:** investigations and daily quota are stored durably — no external
-> service required by default: a local SQLite store (`DATABASE_PATH`, default
-> `data/huntdeck.db`) makes quota survive restarts and `GET /api/v1/investigations/history`
-> returns recent investigations. When `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`
-> are both set, the API switches to the **Supabase store** (PostgREST with the
-> service-role key) and reserves quota atomically via the
-> `reserve_daily_usage` RPC (see `supabase/migrations/002_quota_reserve_rpc.sql`).
-> Apply `supabase/migrations/001_initial_schema.sql` + `002_quota_reserve_rpc.sql`
-> against a Supabase project to activate it.
+> **Persistence & operations:** investigations, daily quota, **watchlist** and
+> **service API keys** are stored durably — no external service required by
+> default: a local SQLite store (`DATABASE_PATH`, default `data/huntdeck.db`)
+> makes quota survive restarts; `GET /api/v1/investigations/history` and
+> `GET /api/v1/investigations/stats` (dashboard metrics) read from it. When
+> `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` are both set, the API switches to
+> the **Supabase store** (PostgREST with the service-role key) and reserves
+> quota atomically via the `reserve_daily_usage` RPC. Apply
+> `supabase/migrations/001..004` against a Supabase project to activate it.
+>
+> **Service API keys** (SIEM/CI integration without Supabase) are managed via
+> CLI and validated as `X-API-Key` or Bearer:
+> `python -m app.cli apikey create --name ci-bot --org dev-org` (plaintext
+> printed once; only the SHA-256 hash is stored).
 
 ## Preview
 

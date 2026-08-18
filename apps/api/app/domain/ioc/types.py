@@ -13,6 +13,7 @@ class IocType(StrEnum):
     SHA256 = "sha256"
     EMAIL = "email"
     PHONE = "phone"
+    SOCIAL_HANDLE = "social_handle"
     UNKNOWN = "unknown"
 
 

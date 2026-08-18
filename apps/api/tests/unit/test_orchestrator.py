@@ -20,7 +20,12 @@ async def test_orchestrator_returns_tactical_contract_for_ipv4() -> None:
     assert response.mappings.iso
     assert response.used_byok is True
     assert response.quota["reason"] == "byok"
-    assert response.mcp_servers_queried == ["mcp-virustotal", "mcp-shodan", "mcp-abuseipdb"]
+    assert response.mcp_servers_queried == [
+        "mcp-virustotal",
+        "mcp-shodan",
+        "mcp-abuseipdb",
+        "mcp-rdap",
+    ]
 
 
 async def test_orchestrator_rejects_unknown_without_provider_calls() -> None:

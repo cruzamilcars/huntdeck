@@ -11,6 +11,14 @@ EMAIL_RE = re.compile(r"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,63}$", re.IGNORECAS
 PHONE_RE = re.compile(r"^\+?[1-9][0-9 .()\-]{7,24}$")
 IPV4_SHAPE_RE = re.compile(r"^\d{1,3}(?:\.\d{1,3}){3}$")
 DOMAIN_RE = re.compile(r"^(?=.{1,253}$)(?!-)(?:[a-zA-Z0-9-]{1,63}\.)+[a-zA-Z]{2,63}$")
+SOCIAL_AT_RE = re.compile(r"^@[A-Za-z0-9_.-]{1,30}$")
+SOCIAL_PROFILE_RE = re.compile(
+    r"^(?:https?://)?(?:www\.)?"
+    r"(?:(?:x|twitter|instagram|facebook|tiktok|linkedin|github|youtube|telegram|t\.me)\.(?:com|me|org|net|dev)"
+    r"|(?:x|t)\.me)"
+    r"/(?:in/|@)?[A-Za-z0-9_.-]{1,60}$",
+    re.IGNORECASE,
+)
 
 
 def parse_ioc(value: str) -> ParsedIoc:
@@ -27,6 +35,10 @@ def parse_ioc(value: str) -> ParsedIoc:
     ip_type = _parse_ip(raw)
     if ip_type != IocType.UNKNOWN:
         return ParsedIoc(raw=raw, normalized=str(ipaddress.ip_address(raw)), type=ip_type)
+
+    social = _parse_social(raw)
+    if social is not None:
+        return social
 
     if _looks_like_url(raw):
         normalized_url = _normalize_url(raw)
@@ -71,6 +83,31 @@ def _parse_ip(value: str) -> IocType:
 def _looks_like_url(value: str) -> bool:
     lowered = value.lower()
     return lowered.startswith(("http://", "https://"))
+
+
+def _parse_social(value: str) -> ParsedIoc | None:
+    raw = value.strip()
+    if SOCIAL_AT_RE.fullmatch(raw):
+        return ParsedIoc(raw=raw, normalized=raw[1:].lower(), type=IocType.SOCIAL_HANDLE)
+
+    lowered = raw.lower()
+    if not lowered.startswith(("http://", "https://")) and "/" not in lowered:
+        return None
+
+    if SOCIAL_PROFILE_RE.fullmatch(raw):
+        path = re.sub(r"^https?://(?:www\.)?", "", lowered).rstrip("/")
+        parts = path.split("/")
+        platform = parts[0]
+        if platform == "linkedin.com" and len(parts) > 1:
+            username = "/".join(parts[1:]).lstrip("@")
+        else:
+            username = parts[-1].lstrip("@")
+        return ParsedIoc(
+            raw=raw,
+            normalized=f"{platform}/{username}",
+            type=IocType.SOCIAL_HANDLE,
+        )
+    return None
 
 
 def _normalize_url(value: str) -> str:

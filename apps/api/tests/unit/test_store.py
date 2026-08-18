@@ -64,6 +64,38 @@ def test_history_scoped_by_user(tmp_path) -> None:
     assert len(store.list_investigations(other)) == 1
 
 
+def test_stats_aggregates_history(tmp_path) -> None:
+    store = SqliteStore(str(tmp_path / "stats.db"))
+    user = CurrentUser(user_id="u1", org_id="o1")
+
+    store.save_investigation(user, response_for("8.8.8.8"))
+    store.save_investigation(user, response_for("8.8.8.8"))
+    store.save_investigation(
+        user,
+        InvestigationResponse(
+            ioc=ParsedIoc(raw="example.com", normalized="example.com", type=IocType.DOMAIN),
+            risk=RiskSummary(score=18, severity="low"),
+            modules={},
+            mappings={},
+            sources=["mock"],
+            mcp_servers_queried=["mock"],
+            used_byok=False,
+            quota={"reason": "platform_quota"},
+        ),
+    )
+
+    stats = store.stats(user)
+
+    assert stats["total"] == 3
+    assert stats["by_type"] == {"ipv4": 2, "domain": 1}
+    assert stats["by_severity"] == {"low": 3}
+    assert stats["avg_risk_score"] == 18.0
+    assert stats["byok_count"] == 0
+    assert stats["top_iocs"][0] == {"ioc": "8.8.8.8", "count": 2}
+    assert stats["daily"][-1]["count"] == 3
+    assert stats["sources_used"] == [{"source": "mock", "count": 3}]
+
+
 def test_api_history_endpoint_returns_saved_investigations() -> None:
     client = TestClient(app)
 

@@ -24,6 +24,13 @@ from app.domain.ioc.types import IocType
         ),
         ("Analyst@Example.com", IocType.EMAIL, "analyst@example.com"),
         ("+1 (415) 555-0101", IocType.PHONE, "+14155550101"),
+        ("@DarkOwl", IocType.SOCIAL_HANDLE, "darkowl"),
+        ("@user_name.1", IocType.SOCIAL_HANDLE, "user_name.1"),
+        ("github.com/octocat", IocType.SOCIAL_HANDLE, "github.com/octocat"),
+        ("https://Twitter.com/ElonMusk", IocType.SOCIAL_HANDLE, "twitter.com/elonmusk"),
+        ("https://x.com/@handle", IocType.SOCIAL_HANDLE, "x.com/handle"),
+        ("linkedin.com/in/ana-lopez", IocType.SOCIAL_HANDLE, "linkedin.com/in/ana-lopez"),
+        ("t.me/malware_bot", IocType.SOCIAL_HANDLE, "t.me/malware_bot"),
     ],
 )
 def test_parse_supported_iocs(value: str, expected_type: IocType, expected_normalized: str) -> None:
@@ -36,3 +43,19 @@ def test_parse_supported_iocs(value: str, expected_type: IocType, expected_norma
 @pytest.mark.parametrize("value", ["", "not an ioc", "999.999.999.999", "http://"])
 def test_parse_unknown_iocs(value: str) -> None:
     assert parse_ioc(value).type == IocType.UNKNOWN
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "@",
+        "@a" * 40,
+        "x.com",
+        "github.com",
+        "https://github.com/org/repo",
+        "evil.com@phishing",
+        "not-a-platform.com/user",
+    ],
+)
+def test_parse_social_handle_rejects_non_profiles(value: str) -> None:
+    assert parse_ioc(value).type != IocType.SOCIAL_HANDLE

@@ -24,6 +24,15 @@ async def investigation_history(
     return store.list_investigations(user, limit)
 
 
+@router.get("/stats", response_model=dict)
+async def investigation_stats(
+    user: CurrentUser = Depends(get_current_user),
+    store=Depends(get_quota_store),
+    days: int = Query(default=14, ge=1, le=90),
+) -> dict:
+    return store.stats(user, days)
+
+
 @router.post("", response_model=InvestigationResponse, status_code=status.HTTP_200_OK)
 async def investigate_ioc(
     payload: InvestigationRequest,

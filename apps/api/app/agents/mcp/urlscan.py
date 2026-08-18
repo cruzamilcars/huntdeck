@@ -16,19 +16,19 @@ class UrlScanMcpClient:
     attribution (IPs, ASNs, countries), content metadata and tags — richer
     threat-intel signal than raw page scraping, with a free API tier.
 
-    The key is sent in the ``API-Key`` header and never logged. Failures become
-    structured observations with an empty reputation.
+    The key is sent in the ``API-Key`` header and never logged. The key is
+    optional: urlscan.io also serves the search endpoint anonymously with a
+    reduced quota, so this adapter is always real (never a mock). Failures
+    become structured observations with an empty reputation.
     """
 
     name = "mcp-urlscan"
 
     def __init__(
         self,
-        api_key: str,
+        api_key: str | None = None,
         client: httpx.AsyncClient | None = None,
     ) -> None:
-        if not api_key:
-            raise ValueError("URLSCAN_API_KEY is required to use the real adapter")
         self._api_key = api_key
         self._client = client or httpx.AsyncClient(timeout=10.0, base_url=BASE_URL)
 
@@ -52,10 +52,11 @@ class UrlScanMcpClient:
         else:
             return self._error_observation("urlscan_unsupported_ioc")
 
+        headers = {"API-Key": self._api_key} if self._api_key else {}
         response = await self._client.get(
             "/search/",
             params={"q": query, "size": "1"},
-            headers={"API-Key": self._api_key},
+            headers=headers,
         )
         response.raise_for_status()
         data = response.json()

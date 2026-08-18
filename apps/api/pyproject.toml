@@ -30,6 +30,9 @@ dev = [
 asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = [
+    "integration: live third-party API contract tests (require API keys; use `pytest -m integration`)",
+]
 
 [tool.ruff]
 line-length = 100

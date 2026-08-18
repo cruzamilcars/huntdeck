@@ -19,23 +19,21 @@ def _default_clients() -> dict[str, McpClient]:
     from app.agents.mcp.virustotal import VirusTotalMcpClient
     from app.core.config import get_settings
 
+    settings = get_settings()
     clients: dict[str, McpClient] = {
         "mcp-virustotal": MockMcpClient("mcp-virustotal"),
         "mcp-shodan": MockMcpClient("mcp-shodan"),
         "mcp-abuseipdb": MockMcpClient("mcp-abuseipdb"),
-        "mcp-urlscan": MockMcpClient("mcp-urlscan"),
         "mcp-firecrawl": MockMcpClient("mcp-firecrawl"),
         "mcp-rdap": RdapMcpClient(),
+        "mcp-urlscan": UrlScanMcpClient(api_key=settings.urlscan_api_key),
     }
-    settings = get_settings()
     if settings.virustotal_api_key:
         clients["mcp-virustotal"] = VirusTotalMcpClient(api_key=settings.virustotal_api_key)
     if settings.abuseipdb_api_key:
         clients["mcp-abuseipdb"] = AbuseIpdbMcpClient(api_key=settings.abuseipdb_api_key)
     if settings.shodan_api_key:
         clients["mcp-shodan"] = ShodanMcpClient(api_key=settings.shodan_api_key)
-    if settings.urlscan_api_key:
-        clients["mcp-urlscan"] = UrlScanMcpClient(api_key=settings.urlscan_api_key)
     return clients
 
 

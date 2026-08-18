@@ -31,13 +31,18 @@ normalized tactical report: risk score, reputation, geolocation, relationship
 graph, community reports and MITRE/NIST/ISO mappings, with PDF/CSV export.
 
 > **Provider status:** **VirusTotal, AbuseIPDB, Shodan, urlscan.io and RDAP are
-> real adapters** — the first four need the corresponding `*_API_KEY` env vars
-> (defaults to mocks when unset); **RDAP/WHOIS is always live** (bootstrap
-> registry at rdap.org, no key) and enriches every IP/domain investigation with
-> registrar, dates, nameservers and contact country. urlscan.io is the evaluated
-> alternative to Firecrawl for URL/DOMAIN web-harvesting: richer reputation
-> signal, free tier, no payment gateway. Firecrawl remains a mock for
-> EMAIL/PHONE/SOCIAL lookups only.
+> real adapters** — VirusTotal/AbuseIPDB/Shodan need the corresponding
+> `*_API_KEY` env vars (defaults to mocks when unset); **urlscan.io and RDAP
+> are always live without a key** (RDAP uses the bootstrap registry at
+> rdap.org; urlscan.io serves its search API anonymously with a reduced
+> quota — add `URLSCAN_API_KEY` to lift it). RDAP enriches every IP/domain
+> investigation with registrar, dates, nameservers and contact country, and
+> urlscan is the evaluated alternative to Firecrawl for URL/DOMAIN
+> web-harvesting: richer reputation signal, free tier, no payment gateway.
+> Firecrawl remains a mock for EMAIL/PHONE/SOCIAL lookups only. Run
+> `python scripts/verify-integrations.py` from `apps/api` to probe every
+> configured integration against its live API; `pytest -m integration` runs
+> the same checks as contract tests.
 
 > **Persistence & operations:** investigations, daily quota, **watchlist** and
 > **service API keys** are stored durably — no external service required by
@@ -117,7 +122,7 @@ Copy `.env.example` → split the variables into the files each app reads:
 | `VIRUSTOTAL_API_KEY` | Optional. Real VirusTotal adapter (hash/IP/domain/URL). Falls back to mock when unset. |
 | `ABUSEIPDB_API_KEY` | Optional. Real AbuseIPDB adapter (IPv4). Falls back to mock when unset. |
 | `SHODAN_API_KEY` | Optional. Real Shodan adapter (IP host data + DNS). Falls back to mock when unset. |
-| `URLSCAN_API_KEY` | Optional. Real urlscan.io adapter (URL/domain reputation). Falls back to mock when unset. |
+| `URLSCAN_API_KEY` | Optional. Real urlscan.io adapter (URL/domain reputation); works anonymously without it (lower rate limit). |
 | `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | Optional. Enables the Supabase store (PostgREST persistence + atomic quota RPC). Falls back to local SQLite when unset. |
 | `DATABASE_PATH` | Local durable store path (default `data/huntdeck.db`). |
 

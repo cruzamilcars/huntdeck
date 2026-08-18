@@ -1,5 +1,4 @@
 import httpx
-import pytest
 
 from app.agents.mcp.urlscan import BASE_URL, UrlScanMcpClient
 from app.domain.ioc.parser import parse_ioc
@@ -104,6 +103,18 @@ async def test_http_error_becomes_structured_observation() -> None:
     assert observation.reputation == {}
 
 
-def test_missing_key_is_rejected() -> None:
-    with pytest.raises(ValueError, match="URLSCAN_API_KEY"):
-        UrlScanMcpClient(api_key="")
+async def test_anonymous_client_sends_no_api_key_header() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert "API-Key" not in request.headers
+        return httpx.Response(200, json=search_payload())
+
+    transport = httpx.MockTransport(handler)
+    client = UrlScanMcpClient(
+        client=httpx.AsyncClient(transport=transport, base_url=BASE_URL),
+    )
+
+    observation = await client.query(parse_ioc("example.com"))
+
+    assert observation.source == "mcp-urlscan"
+    assert observation.raw["mock"] is False
+    assert observation.reputation["verdict"] == "clean"

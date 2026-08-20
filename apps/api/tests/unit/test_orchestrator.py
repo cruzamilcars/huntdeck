@@ -37,3 +37,19 @@ async def test_orchestrator_rejects_unknown_without_provider_calls() -> None:
     assert response.ioc.type == IocType.UNKNOWN
     assert response.risk.severity == "unknown"
     assert response.sources == []
+
+
+async def test_email_uses_hibp_provider() -> None:
+    response = await InvestigationOrchestrator().investigate("analyst@example.com")
+
+    assert response.ioc.type == IocType.EMAIL
+    assert response.mcp_servers_queried == ["mcp-hibp"]
+    assert response.sources == ["mcp-hibp"]
+
+
+async def test_phone_uses_opencnam_provider() -> None:
+    response = await InvestigationOrchestrator().investigate("+1 (415) 555-0101")
+
+    assert response.ioc.type == IocType.PHONE
+    assert response.mcp_servers_queried == ["mcp-opencnam"]
+    assert response.sources == ["mcp-opencnam"]

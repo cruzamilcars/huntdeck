@@ -13,6 +13,8 @@ on failure).
 import pytest
 
 from app.agents.mcp.abuseipdb import AbuseIpdbMcpClient
+from app.agents.mcp.hibp import HibpMcpClient
+from app.agents.mcp.opencnam import OpenCnamMcpClient
 from app.agents.mcp.rdap import RdapMcpClient
 from app.agents.mcp.shodan import ShodanMcpClient
 from app.agents.mcp.urlscan import UrlScanMcpClient
@@ -79,3 +81,15 @@ async def test_urlscan_anonymous_live() -> None:
 
 async def test_rdap_domain_live() -> None:
     await _assert_responds(RdapMcpClient(), "example.com")
+
+
+@_requires("hibp_api_key")
+async def test_hibp_email_live() -> None:
+    settings = get_settings()
+    await _assert_responds(HibpMcpClient(api_key=settings.hibp_api_key), "test@example.com")
+
+
+@_requires("opencnam_api_key")
+async def test_opencnam_phone_live() -> None:
+    settings = get_settings()
+    await _assert_responds(OpenCnamMcpClient(api_key=settings.opencnam_api_key), "+15555550101")

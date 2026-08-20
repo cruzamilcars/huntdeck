@@ -15,6 +15,8 @@ from app.services.playbooks import playbook_for
 
 def _default_clients() -> dict[str, McpClient]:
     from app.agents.mcp.abuseipdb import AbuseIpdbMcpClient
+    from app.agents.mcp.hibp import HibpMcpClient
+    from app.agents.mcp.opencnam import OpenCnamMcpClient
     from app.agents.mcp.rdap import RdapMcpClient
     from app.agents.mcp.shodan import ShodanMcpClient
     from app.agents.mcp.urlscan import UrlScanMcpClient
@@ -25,6 +27,8 @@ def _default_clients() -> dict[str, McpClient]:
         "mcp-virustotal": MockMcpClient("mcp-virustotal"),
         "mcp-shodan": MockMcpClient("mcp-shodan"),
         "mcp-abuseipdb": MockMcpClient("mcp-abuseipdb"),
+        "mcp-hibp": MockMcpClient("mcp-hibp"),
+        "mcp-opencnam": MockMcpClient("mcp-opencnam"),
         "mcp-firecrawl": MockMcpClient("mcp-firecrawl"),
         "mcp-rdap": RdapMcpClient(),
         "mcp-urlscan": UrlScanMcpClient(api_key=settings.urlscan_api_key),
@@ -35,6 +39,10 @@ def _default_clients() -> dict[str, McpClient]:
         clients["mcp-abuseipdb"] = AbuseIpdbMcpClient(api_key=settings.abuseipdb_api_key)
     if settings.shodan_api_key:
         clients["mcp-shodan"] = ShodanMcpClient(api_key=settings.shodan_api_key)
+    if settings.hibp_api_key:
+        clients["mcp-hibp"] = HibpMcpClient(api_key=settings.hibp_api_key)
+    if settings.opencnam_api_key:
+        clients["mcp-opencnam"] = OpenCnamMcpClient(api_key=settings.opencnam_api_key)
     return clients
 
 
@@ -80,7 +88,11 @@ class InvestigationOrchestrator:
                 return ["mcp-virustotal", "mcp-urlscan"]
             case IocType.MD5 | IocType.SHA1 | IocType.SHA256:
                 return ["mcp-virustotal"]
-            case IocType.EMAIL | IocType.PHONE | IocType.SOCIAL_HANDLE:
+            case IocType.EMAIL:
+                return ["mcp-hibp"]
+            case IocType.PHONE:
+                return ["mcp-opencnam"]
+            case IocType.SOCIAL_HANDLE:
                 return ["mcp-firecrawl"]
             case IocType.UNKNOWN:
                 return []

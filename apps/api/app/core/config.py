@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     abuseipdb_api_key: str | None = None
     shodan_api_key: str | None = None
     urlscan_api_key: str | None = None
+    hibp_api_key: str | None = None
+    opencnam_api_key: str | None = None
     supabase_url: str | None = None
     supabase_service_role_key: str | None = None
     database_path: str = Field(

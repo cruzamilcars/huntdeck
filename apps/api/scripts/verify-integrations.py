@@ -15,6 +15,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.agents.mcp.abuseipdb import AbuseIpdbMcpClient
+from app.agents.mcp.hibp import HibpMcpClient
+from app.agents.mcp.opencnam import OpenCnamMcpClient
 from app.agents.mcp.rdap import RdapMcpClient
 from app.agents.mcp.shodan import ShodanMcpClient
 from app.agents.mcp.urlscan import UrlScanMcpClient
@@ -28,6 +30,8 @@ PROBES = [
     ("mcp-shodan", ShodanMcpClient, "shodan_api_key", "8.8.8.8", False),
     ("mcp-urlscan", UrlScanMcpClient, "urlscan_api_key", "example.com", True),
     ("mcp-rdap", RdapMcpClient, None, "example.com", True),
+    ("mcp-hibp", HibpMcpClient, "hibp_api_key", "test@example.com", False),
+    ("mcp-opencnam", OpenCnamMcpClient, "opencnam_api_key", "+15555550101", False),
 ]
 
 

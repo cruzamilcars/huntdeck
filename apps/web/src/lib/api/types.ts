@@ -39,6 +39,13 @@ export interface InvestigationResponse {
     nist: Array<Record<string, string>>;
     iso: Array<Record<string, string>>;
   };
+  playbooks: Array<{
+    title: string;
+    source: string;
+    reference: string;
+    summary: string;
+    steps: Array<{ title: string; detail: string; tool: string }>;
+  }>;
   sources: string[];
   mcp_servers_queried: string[];
   used_byok: boolean;

@@ -13,6 +13,10 @@ export function exportInvestigationCsv(result: InvestigationResponse): void {
     ["sources", result.sources.join(";")],
     ["mcp_servers_queried", result.mcp_servers_queried.join(";")],
     ["used_byok", String(result.used_byok)],
+    ["mitre_attack", result.mappings.mitre_attack.map((item) => item.id).join(";")],
+    ["nist", result.mappings.nist.map((item) => item.id).join(";")],
+    ["iso", result.mappings.iso.map((item) => item.id).join(";")],
+    ["playbooks", result.playbooks.map((p) => p.title).join(";")],
   ];
   const csv = rows.map((row) => row.map(escapeCsv).join(",")).join("\n");
   downloadBlob(csv, `ioc-${result.ioc.type}.csv`, "text/csv;charset=utf-8");
@@ -35,6 +39,7 @@ export function exportInvestigationPdf(result: InvestigationResponse): void {
     `MITRE: ${result.mappings.mitre_attack.map((item) => item.id).join(", ")}`,
     `NIST: ${result.mappings.nist.map((item) => item.id).join(", ")}`,
     `ISO: ${result.mappings.iso.map((item) => item.id).join(", ")}`,
+    `PLAYBOOKS: ${result.playbooks.map((p) => p.title).join(", ")}`,
   ];
 
   let y = 32;

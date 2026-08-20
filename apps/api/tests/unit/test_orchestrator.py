@@ -18,6 +18,9 @@ async def test_orchestrator_returns_tactical_contract_for_ipv4() -> None:
     assert response.mappings.mitre_attack
     assert response.mappings.nist
     assert response.mappings.iso
+    assert response.playbooks
+    assert response.playbooks[0]["steps"]
+    assert response.playbooks[0]["reference"].startswith("https://github.com/mukul975/")
     assert response.used_byok is True
     assert response.quota["reason"] == "byok"
     assert response.mcp_servers_queried == [

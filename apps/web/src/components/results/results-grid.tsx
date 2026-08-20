@@ -114,6 +114,46 @@ export function ResultsGrid({
         </div>
       </ModulePanel>
 
+      <ModulePanel title="Next Steps / Playbook" meta={`${result.playbooks.length} playbooks`}>
+        <div className="space-y-3">
+          {result.playbooks.map((playbook) => (
+            <article
+              key={playbook.title}
+              className="border border-[var(--muted-line)] p-3 text-xs"
+            >
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <h3 className="font-black uppercase text-[var(--warning)]">{playbook.title}</h3>
+                <a
+                  href={playbook.reference}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="uppercase text-[var(--muted)] underline hover:text-white"
+                  title={playbook.source}
+                >
+                  {playbook.source}
+                </a>
+              </div>
+              <p className="mb-3 break-words text-[var(--muted)]">{playbook.summary}</p>
+              <ol className="space-y-2">
+                {playbook.steps.map((step) => (
+                  <li key={step.title} className="border border-[var(--muted-line)] p-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-black uppercase">{step.title}</p>
+                      {step.tool ? (
+                        <span className="bg-[var(--warning)] px-1.5 py-0.5 font-black uppercase text-black">
+                          {step.tool}
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-1 break-words text-[var(--muted)]">{step.detail}</p>
+                  </li>
+                ))}
+              </ol>
+            </article>
+          ))}
+        </div>
+      </ModulePanel>
+
       <ModulePanel title="MITRE / NIST / ISO" meta="mapped">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <MappingList title="MITRE" rows={result.mappings.mitre_attack} />

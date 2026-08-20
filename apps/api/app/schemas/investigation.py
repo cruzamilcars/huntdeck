@@ -43,6 +43,7 @@ class InvestigationResponse(BaseModel):
     risk: RiskSummary
     modules: ResultModules
     mappings: TacticalMappings
+    playbooks: list[dict[str, Any]] = Field(default_factory=list)
     sources: list[str]
     mcp_servers_queried: list[str]
     used_byok: bool = False

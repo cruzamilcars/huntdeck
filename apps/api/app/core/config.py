@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     app_name: str = "OSINT MCP Hub API"
     daily_free_quota: int = Field(default=10, description="Daily free quota (default 10)")
     rate_limit_per_minute: int = 60
+    service_rate_limit_per_minute: int = Field(
+        default=300, description="Rate limit for X-API-Key service credentials"
+    )
     supabase_jwt_secret: str | None = None
     virustotal_api_key: str | None = None
     abuseipdb_api_key: str | None = None

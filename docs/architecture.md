@@ -19,16 +19,18 @@ osint-mcp-hub/
         styles/                   # Tailwind/theme brutalista
     api/                          # FastAPI
       app/
-        api/v1/routes/            # Routers HTTP
-        agents/mcp/               # Cliente MCP y proveedores simulados/reales
-        core/                     # Config, seguridad, logging
-        db/                       # Acceso Supabase/Postgres
+        api/v1/routes/            # Routers HTTP (investigations, watchlist, system)
+        agents/mcp/               # Cliente MCP y adapters reales por proveedor
+        core/                     # Config, seguridad, rate limiting, headers
         domain/
           ioc/                    # Parseo, tipos y normalizacion IOC
           quota/                  # Freemium/BYOK
           reports/                # Export/report contracts
+        infrastructure/           # Stores: SQLite local / Supabase PostgREST
         schemas/                  # Pydantic DTOs
-        services/                 # Casos de uso: orquestacion, persistencia
+        services/                 # Orquestacion, playbooks, providers registry
+      scripts/
+        verify-integrations.py    # Probe en vivo de las 9 integraciones
       tests/
         unit/
         integration/
@@ -57,31 +59,60 @@ osint-mcp-hub/
 
 ## Contrato tactico de resultados
 
-El backend devolvera un JSON consolidado con estas secciones minimas:
+El backend devuelve un JSON consolidado con estas secciones:
 
 ```json
 {
   "ioc": {
     "raw": "string",
     "normalized": "string",
-    "type": "ipv4 | ipv6 | domain | url | md5 | sha1 | sha256 | email | phone"
+    "type": "ipv4 | ipv6 | domain | url | md5 | sha1 | sha256 | email | phone | social_handle"
   },
-  "risk": {
-    "score": 0,
-    "severity": "unknown | low | medium | high | critical"
-  },
+  "risk": { "score": 0, "severity": "unknown | low | medium | high | critical" },
   "modules": {
     "reputation": {},
     "geolocation": {},
     "relationship_graph": {},
-    "community_reports": {}
+    "community_reports": []
   },
-  "mappings": {
-    "mitre_attack": [],
-    "nist": [],
-    "iso": []
-  },
-  "sources": []
+  "mappings": { "mitre_attack": [], "nist": [], "iso": [] },
+  "playbooks": [
+    { "title": "...", "source": "...", "reference": "...", "steps": [] }
+  ],
+  "sources": [],
+  "used_byok": false
 }
 ```
+
+## Proveedores MCP (9 adapters reales)
+
+| Provider | IOC cubiertos | Key |
+| --- | --- | --- |
+| `mcp-virustotal` | ipv4, ipv6, domain, url, hashes | `VIRUSTOTAL_API_KEY` |
+| `mcp-shodan` | ipv4, ipv6, domain | `SHODAN_API_KEY` |
+| `mcp-abuseipdb` | ipv4, ipv6 | `ABUSEIPDB_API_KEY` |
+| `mcp-rdap` | ipv4, ipv6, domain | siempre activo (bootstrap rdap.org) |
+| `mcp-urlscan` | domain, url | opcional (`URLSCAN_API_KEY` sube la cuota) |
+| `mcp-hibp` | email | `HIBP_API_KEY` |
+| `mcp-opencnam` | phone | `OPENCNAM_API_KEY` |
+| `mcp-otx` | ipv4, ipv6, domain, url, hashes | `OTX_API_KEY` |
+| `mcp-social` | social_handle | siempre activo (GitHub/Reddit/Telegram) |
+
+Sin key configurada, los adapters key-gated caen a mocks deterministas;
+`GET /api/v1/system/providers` reporta el estado real/mock de cada uno y el
+dashboard lo renderiza en el panel "Provider status".
+
+## Watchlist con auto-recheck
+
+`GET /api/v1/watchlist` refresca perezosamente los items obsoletos: los nunca
+chequeados o con `last_checked_at` anterior a `recheck_ttl_hours` (default 24)
+se re-investigan, del mas viejo al mas nuevo, con presupuesto de
+`recheck_max` (default 3 por llamada). `recheck_max=0` lista sin refrescar.
+
+## Rate limiting
+
+Ventana deslizante por identidad: trafico anonimo por IP
+(`RATE_LIMIT_PER_MINUTE`, default 60); credenciales de servicio `X-API-Key`
+por huella de la clave (`SERVICE_RATE_LIMIT_PER_MINUTE`, default 300), para
+que SIEM/CI no compita con navegadores. `/health` queda exento.
 

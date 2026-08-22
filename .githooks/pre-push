@@ -4,11 +4,44 @@
 # One-time activation (Git for Windows ships the bash needed to run it):
 #   git config core.hooksPath .githooks
 #
-# Skip for a single push with: git push --no-verify
+# If your default python does not have the dev dependencies installed, point
+# the hook at one that does for this repository only:
+#   git config local.python.cmd "C:/path/to/python.exe"
+# or per-invocation: PYTHON=/path/to/python git push
+#
+# Skip a single push with: git push --no-verify
 
 set -e
-echo "==> pre-push: API lint + format + tests"
-(cd apps/api && python -m ruff check app tests && python -m ruff format --check app tests && python -m pytest -q)
+
+resolve_python() {
+  configured=$(git config --get local.python.cmd || true)
+  if [ -n "$configured" ]; then
+    echo "$configured"
+    return 0
+  fi
+  if [ -n "$PYTHON" ] && "$PYTHON" -m ruff --version >/dev/null 2>&1; then
+    echo "$PYTHON"
+    return 0
+  fi
+  for candidate in "python" "py -3" "python3"; do
+    # shellcheck disable=SC2086
+    if $candidate -m ruff --version >/dev/null 2>&1; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+  echo ""
+}
+
+PYTHON_CMD=$(resolve_python)
+if [ -z "$PYTHON_CMD" ]; then
+  echo "pre-push: no python with ruff+pytest found." >&2
+  echo "Set it once with: git config local.python.cmd <path-to-python>" >&2
+  exit 1
+fi
+
+echo "==> pre-push: API lint + format + tests (python: $PYTHON_CMD)"
+(cd apps/api && $PYTHON_CMD -m ruff check app tests && $PYTHON_CMD -m ruff format --check app tests && $PYTHON_CMD -m pytest -q)
 
 echo "==> pre-push: Web lint + build"
 npm run lint

@@ -220,6 +220,33 @@ the roadmap in the open issues and the provider status note above.
 `npm run dev:web`, `npm run dev:api`, `npm run lint`, `npm test`, `pytest`.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow and check list.
 
+### CI status & alternatives
+
+The GitHub Actions workflow is valid but **cannot start**: the account is
+locked by an unresolved billing issue ("The job was not started because your
+account is locked due to a billing issue" — every job fails in ~2s with zero
+steps executed). Options:
+
+1. **Fix it at the source** — resolve the lock in
+   [Settings → Billing](https://github.com/settings/billing) or open a free
+   billing support ticket at <https://support.github.com/request>; the
+   existing workflow resumes untouched.
+2. **Cirrus CI (free for public repos)** — this repo ships `.cirrus.yml`
+   mirroring the same checks. Sign in at cirrus-ci.com, install its GitHub
+   App on the repository, and pushes/PRs build there immediately.
+3. **Local gate, no third party** — run the same checks before every push:
+   ```bash
+   git config core.hooksPath .githooks   # one-time activation
+   ```
+   `.githooks/pre-push` then runs API ruff + pytest and web lint + build.
+
+### Provider status API
+
+`GET /api/v1/system/providers` reports each MCP provider's mode (`real` /
+`mock`), covered IOC types and which env var unlocks a mocked adapter — the
+dashboard renders this as a "Provider status" panel so you always know
+whether evidence comes from live sources or mocks.
+
 ## Security
 
 See [SECURITY.md](SECURITY.md) — including how to report vulnerabilities and

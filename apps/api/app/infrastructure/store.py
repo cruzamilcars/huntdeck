@@ -165,6 +165,7 @@ class SqliteStore:
         self,
         user: CurrentUser,
         limit: int = 50,
+        offset: int = 0,
     ) -> list[dict]:
         with self._lock:
             rows = self._connection.execute(
@@ -172,8 +173,8 @@ class SqliteStore:
                 "       sources, used_byok, created_at "
                 "FROM investigations "
                 "WHERE org_id = ? AND user_id = ? "
-                "ORDER BY created_at DESC LIMIT ?",
-                (user.org_id, user.user_id, limit),
+                "ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                (user.org_id, user.user_id, limit, offset),
             ).fetchall()
         return [dict(row) for row in rows]
 

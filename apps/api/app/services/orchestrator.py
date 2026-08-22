@@ -102,6 +102,19 @@ class InvestigationOrchestrator:
             case IocType.UNKNOWN:
                 return []
 
+    def provider_coverage(self) -> dict[str, list[str]]:
+        coverage: dict[str, list[str]] = {}
+        for ioc_type in IocType:
+            for provider_name in self._select_providers(ioc_type):
+                coverage.setdefault(provider_name, []).append(str(ioc_type))
+        return {name: sorted(types) for name, types in sorted(coverage.items())}
+
+    def provider_modes(self) -> dict[str, str]:
+        return {
+            name: "mock" if isinstance(client, MockMcpClient) else "real"
+            for name, client in self.clients.items()
+        }
+
     def _summarize_risk(self, observations: list[McpObservation]) -> RiskSummary:
         if not observations:
             return RiskSummary(score=0, severity="unknown")

@@ -1,0 +1,48 @@
+# Alternative CI pipeline for Cirrus CI (free for public repositories).
+#
+# GitHub Actions is currently blocked by an account-level billing lock, which
+# prevents ANY workflow from starting ("The job was not started because your
+# account is locked due to a billing issue"). This file mirrors .github/workflows/ci.yml
+# so the same checks run on Cirrus CI instead:
+#
+#   1. Sign in at https://cirrus-ci.com/github/<user>/<repo> with GitHub.
+#   2. Install the Cirrus CI GitHub App for this repository.
+#   3. Pushes and PRs will now build here automatically.
+#
+# The GitHub Actions workflow is kept untouched: it resumes working as soon
+# as the billing issue is resolved on https://github.com/settings/billing.
+
+container:
+  image: node:22-bookworm
+
+api_task:
+  name: API (FastAPI)
+  container:
+    image: python:3.11-slim
+  working_directory_script: cd apps/api
+  install_dependencies_script:
+    - pip install --quiet -e ".[dev]"
+    - pip install --quiet ruff pytest-asyncio
+  lint_script: ruff check app tests
+  format_check_script: ruff format --check app tests
+  tests_script: pytest -q
+
+web_task:
+  name: Web (Next.js)
+  environment:
+    CACHEDIR: /tmp/cirrus-cache
+  node_modules_cache:
+    folder: node_modules
+    fingerprint_script: cat package-lock.json
+    populate_script: npm ci
+  lint_script: npm run lint
+  build_script: npm run build:web
+
+docker_task:
+  name: Docker images
+  container:
+    image: docker:dind
+    privileged: true
+  only_if: $CIRRUS_BRANCH == 'main'
+  api_image_build_script:
+    - docker build -f infra/docker/Dockerfile.api -t osint-mcp-hub-api .

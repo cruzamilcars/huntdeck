@@ -109,13 +109,16 @@ class SupabaseStore:
         response = self._client.post("/investigations", json=row)
         response.raise_for_status()
 
-    def list_investigations(self, user: CurrentUser, limit: int = 50) -> list[dict[str, Any]]:
+    def list_investigations(
+        self, user: CurrentUser, limit: int = 50, offset: int = 0
+    ) -> list[dict[str, Any]]:
         params: dict[str, str] = {
             "select": HISTORY_SELECT,
             "org_id": f"eq.{user.org_id}",
             "user_id": f"eq.{user.user_id}",
             "order": "created_at.desc",
             "limit": str(limit),
+            "offset": str(offset),
         }
         response = self._client.get("/investigations", params=params)
         response.raise_for_status()

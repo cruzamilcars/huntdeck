@@ -20,8 +20,9 @@ async def investigation_history(
     user: CurrentUser = Depends(get_current_user),
     store=Depends(get_quota_store),
     limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
 ) -> list[dict]:
-    return store.list_investigations(user, limit)
+    return store.list_investigations(user, limit, offset)
 
 
 @router.get("/stats", response_model=dict)

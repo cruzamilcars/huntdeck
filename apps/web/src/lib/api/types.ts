@@ -51,3 +51,11 @@ export interface InvestigationResponse {
   used_byok: boolean;
 }
 
+export interface ProviderStatus {
+  name: string;
+  mode: "real" | "mock";
+  ioc_types: string[];
+  key_env_var: string | null;
+  configured: boolean;
+}
+

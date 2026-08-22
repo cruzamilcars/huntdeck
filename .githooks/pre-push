@@ -1,0 +1,17 @@
+#!/bin/sh
+# Local quality gate: mirrors CI checks before every push.
+#
+# One-time activation (Git for Windows ships the bash needed to run it):
+#   git config core.hooksPath .githooks
+#
+# Skip for a single push with: git push --no-verify
+
+set -e
+echo "==> pre-push: API lint + format + tests"
+(cd apps/api && python -m ruff check app tests && python -m ruff format --check app tests && python -m pytest -q)
+
+echo "==> pre-push: Web lint + build"
+npm run lint
+npm run build:web
+
+echo "==> pre-push: all checks passed"

@@ -1,4 +1,7 @@
-import type { InvestigationResponse } from "@/lib/api/types";
+import type {
+  InvestigationResponse,
+  ProviderStatus,
+} from "@/lib/api/types";
 import type { SessionContext } from "@/lib/api/session";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
@@ -87,6 +90,13 @@ export async function fetchInvestigationStats(
 ): Promise<InvestigationStats> {
   const stats = await apiGet(`/api/v1/investigations/stats?days=${days}`, session);
   return stats as InvestigationStats;
+}
+
+export async function fetchSystemProviders(
+  session: SessionContext | null = null
+): Promise<ProviderStatus[]> {
+  const providers = await apiGet("/api/v1/system/providers", session);
+  return providers as ProviderStatus[];
 }
 
 export interface WatchItem {

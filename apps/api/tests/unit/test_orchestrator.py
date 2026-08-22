@@ -28,6 +28,7 @@ async def test_orchestrator_returns_tactical_contract_for_ipv4() -> None:
         "mcp-shodan",
         "mcp-abuseipdb",
         "mcp-rdap",
+        "mcp-otx",
     ]
 
 
@@ -53,3 +54,11 @@ async def test_phone_uses_opencnam_provider() -> None:
     assert response.ioc.type == IocType.PHONE
     assert response.mcp_servers_queried == ["mcp-opencnam"]
     assert response.sources == ["mcp-opencnam"]
+
+
+async def test_social_handle_uses_social_presence_provider() -> None:
+    response = await InvestigationOrchestrator().investigate("@octocat")
+
+    assert response.ioc.type == IocType.SOCIAL_HANDLE
+    assert response.mcp_servers_queried == ["mcp-social"]
+    assert response.sources == ["mcp-social"]

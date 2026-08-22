@@ -17,8 +17,10 @@ def _default_clients() -> dict[str, McpClient]:
     from app.agents.mcp.abuseipdb import AbuseIpdbMcpClient
     from app.agents.mcp.hibp import HibpMcpClient
     from app.agents.mcp.opencnam import OpenCnamMcpClient
+    from app.agents.mcp.otx import OtxMcpClient
     from app.agents.mcp.rdap import RdapMcpClient
     from app.agents.mcp.shodan import ShodanMcpClient
+    from app.agents.mcp.social import SocialPresenceMcpClient
     from app.agents.mcp.urlscan import UrlScanMcpClient
     from app.agents.mcp.virustotal import VirusTotalMcpClient
 
@@ -29,9 +31,10 @@ def _default_clients() -> dict[str, McpClient]:
         "mcp-abuseipdb": MockMcpClient("mcp-abuseipdb"),
         "mcp-hibp": MockMcpClient("mcp-hibp"),
         "mcp-opencnam": MockMcpClient("mcp-opencnam"),
-        "mcp-firecrawl": MockMcpClient("mcp-firecrawl"),
+        "mcp-otx": MockMcpClient("mcp-otx"),
         "mcp-rdap": RdapMcpClient(),
         "mcp-urlscan": UrlScanMcpClient(api_key=settings.urlscan_api_key),
+        "mcp-social": SocialPresenceMcpClient(),
     }
     if settings.virustotal_api_key:
         clients["mcp-virustotal"] = VirusTotalMcpClient(api_key=settings.virustotal_api_key)
@@ -43,6 +46,8 @@ def _default_clients() -> dict[str, McpClient]:
         clients["mcp-hibp"] = HibpMcpClient(api_key=settings.hibp_api_key)
     if settings.opencnam_api_key:
         clients["mcp-opencnam"] = OpenCnamMcpClient(api_key=settings.opencnam_api_key)
+    if settings.otx_api_key:
+        clients["mcp-otx"] = OtxMcpClient(api_key=settings.otx_api_key)
     return clients
 
 
@@ -81,19 +86,19 @@ class InvestigationOrchestrator:
     def _select_providers(self, ioc_type: IocType | str) -> list[str]:
         match IocType(ioc_type):
             case IocType.IPV4 | IocType.IPV6:
-                return ["mcp-virustotal", "mcp-shodan", "mcp-abuseipdb", "mcp-rdap"]
+                return ["mcp-virustotal", "mcp-shodan", "mcp-abuseipdb", "mcp-rdap", "mcp-otx"]
             case IocType.DOMAIN:
-                return ["mcp-virustotal", "mcp-shodan", "mcp-urlscan", "mcp-rdap"]
+                return ["mcp-virustotal", "mcp-shodan", "mcp-urlscan", "mcp-rdap", "mcp-otx"]
             case IocType.URL:
-                return ["mcp-virustotal", "mcp-urlscan"]
+                return ["mcp-virustotal", "mcp-urlscan", "mcp-otx"]
             case IocType.MD5 | IocType.SHA1 | IocType.SHA256:
-                return ["mcp-virustotal"]
+                return ["mcp-virustotal", "mcp-otx"]
             case IocType.EMAIL:
                 return ["mcp-hibp"]
             case IocType.PHONE:
                 return ["mcp-opencnam"]
             case IocType.SOCIAL_HANDLE:
-                return ["mcp-firecrawl"]
+                return ["mcp-social"]
             case IocType.UNKNOWN:
                 return []
 

@@ -30,17 +30,19 @@ for threat intelligence:
 normalized tactical report: risk score, reputation, geolocation, relationship
 graph, community reports and MITRE/NIST/ISO mappings, with PDF/CSV export.
 
-> **Provider status:** **VirusTotal, AbuseIPDB, Shodan, urlscan.io, RDAP, Have I
-> Been Pwned and OpenCNAM are real adapters** — VirusTotal/AbuseIPDB/Shodan/HIBP/
-> OpenCNAM need the corresponding `*_API_KEY` env vars (defaults to mocks when
-> unset); **urlscan.io and RDAP are always live without a key** (RDAP uses the
-> bootstrap registry at rdap.org; urlscan.io serves its search API anonymously
-> with a reduced quota — add `URLSCAN_API_KEY` to lift it). RDAP enriches every
-> IP/domain investigation with registrar, dates, nameservers and contact country;
+> **Provider status:** **all nine providers are real adapters** — VirusTotal,
+> AbuseIPDB, Shodan, Have I Been Pwned, OpenCNAM and AlienVault OTX need their
+> free `*_API_KEY` env vars (defaults to mocks when unset); **urlscan.io, RDAP
+> and Social Presence are always live without a key** (RDAP uses the bootstrap
+> registry at rdap.org; urlscan.io serves its search API anonymously with a
+> reduced quota — add `URLSCAN_API_KEY` to lift it; Social Presence checks
+> GitHub/Reddit/Telegram for handle attribution). RDAP enriches every IP/domain
+> investigation with registrar, dates, nameservers and contact country;
 > urlscan is the evaluated alternative to Firecrawl for URL/DOMAIN
-> web-harvesting; **HIBP reports email breaches (score/verdict per data class)
-> and OpenCNAM attributes phone numbers to carriers** — the last Firecrawl mock
-> remains for SOCIAL_HANDLE lookups only. Run
+> web-harvesting; HIBP reports email breaches (score/verdict per data class);
+> OpenCNAM attributes phone numbers to carriers; OTX adds open-source threat
+> pulses to every IP/domain/URL/hash. **No mock providers remain in the
+> investigation paths.** Run
 > `python scripts/verify-integrations.py` from `apps/api` to probe every
 > configured integration against its live API; `pytest -m integration` runs
 > the same checks as contract tests.
@@ -126,6 +128,7 @@ Copy `.env.example` → split the variables into the files each app reads:
 | `URLSCAN_API_KEY` | Optional. Real urlscan.io adapter (URL/domain reputation); works anonymously without it (lower rate limit). |
 | `HIBP_API_KEY` | Optional. Real Have I Been Pwned adapter (email breaches; score/verdict per data class). Falls back to mock when unset. |
 | `OPENCNAM_API_KEY` | Optional. Real OpenCNAM adapter (phone CNAM/carrier). Falls back to mock when unset. |
+| `OTX_API_KEY` | Optional. Real AlienVault OTX adapter (threat pulses for IP/domain/URL/hash). Falls back to mock when unset. |
 | `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | Optional. Enables the Supabase store (PostgREST persistence + atomic quota RPC). Falls back to local SQLite when unset. |
 | `DATABASE_PATH` | Local durable store path (default `data/huntdeck.db`). |
 
@@ -208,9 +211,9 @@ osint-mcp-hub/
 | 5 | Hardening: rate limit, security headers, strict validation, exports | Done |
 
 See [`docs/execution-plan.md`](docs/execution-plan.md) for details. Real
-provider adapters (VirusTotal, AbuseIPDB, Shodan, urlscan.io, HIBP, OpenCNAM)
-plug into the same `McpClient` protocol; see the roadmap in the open issues and
-the provider status note above.
+provider adapters (VirusTotal, AbuseIPDB, Shodan, urlscan.io, RDAP, HIBP,
+OpenCNAM, OTX, Social Presence) plug into the same `McpClient` protocol; see
+the roadmap in the open issues and the provider status note above.
 
 ## Development
 

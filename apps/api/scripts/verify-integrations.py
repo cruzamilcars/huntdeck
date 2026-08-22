@@ -17,8 +17,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.agents.mcp.abuseipdb import AbuseIpdbMcpClient
 from app.agents.mcp.hibp import HibpMcpClient
 from app.agents.mcp.opencnam import OpenCnamMcpClient
+from app.agents.mcp.otx import OtxMcpClient
 from app.agents.mcp.rdap import RdapMcpClient
 from app.agents.mcp.shodan import ShodanMcpClient
+from app.agents.mcp.social import SocialPresenceMcpClient
 from app.agents.mcp.urlscan import UrlScanMcpClient
 from app.agents.mcp.virustotal import VirusTotalMcpClient
 from app.core.config import get_settings
@@ -32,6 +34,8 @@ PROBES = [
     ("mcp-rdap", RdapMcpClient, None, "example.com", True),
     ("mcp-hibp", HibpMcpClient, "hibp_api_key", "test@example.com", False),
     ("mcp-opencnam", OpenCnamMcpClient, "opencnam_api_key", "+15555550101", False),
+    ("mcp-otx", OtxMcpClient, "otx_api_key", "8.8.8.8", False),
+    ("mcp-social", SocialPresenceMcpClient, None, "@octocat", True),
 ]
 
 

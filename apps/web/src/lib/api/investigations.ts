@@ -78,9 +78,13 @@ async function apiGet(
 
 export async function fetchInvestigationHistory(
   session: SessionContext | null = null,
-  limit = 20
+  limit = 20,
+  offset = 0
 ): Promise<InvestigationHistoryRow[]> {
-  const rows = await apiGet(`/api/v1/investigations/history?limit=${limit}`, session);
+  const rows = await apiGet(
+    `/api/v1/investigations/history?limit=${limit}&offset=${offset}`,
+    session
+  );
   return rows as InvestigationHistoryRow[];
 }
 

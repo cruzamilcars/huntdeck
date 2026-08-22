@@ -1,6 +1,7 @@
 import logging
+from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.core.security import CurrentUser, get_current_user
 from app.domain.ioc.parser import parse_ioc
@@ -18,8 +19,56 @@ router = APIRouter(prefix="/watchlist", tags=["watchlist"])
 async def list_watchlist(
     user: CurrentUser = Depends(get_current_user),
     store=Depends(get_quota_store),
+    orchestrator: InvestigationOrchestrator = Depends(get_orchestrator),
+    recheck_ttl_hours: int = Query(default=24, ge=0, le=720),
+    recheck_max: int = Query(default=3, ge=0, le=10),
 ) -> list[dict]:
-    return store.list_watch_items(user)
+    """List watch items, lazily refreshing the stalest ones first.
+
+    Items never checked or older than ``recheck_ttl_hours`` are re-investigated
+    automatically, at most ``recheck_max`` per call so a single request can
+    never exhaust quota. Set ``recheck_max=0`` for a read-only listing.
+    """
+    items = store.list_watch_items(user)
+    if recheck_max == 0:
+        return items
+
+    cutoff = datetime.now(UTC) - timedelta(hours=recheck_ttl_hours)
+    stale = [item for item in items if _checked_before(item.get("last_checked_at"), cutoff)]
+    stale.sort(key=lambda item: item.get("last_checked_at") or "")
+
+    refreshed = 0
+    for item in stale:
+        if refreshed >= recheck_max:
+            break
+        try:
+            result = await orchestrator.investigate(
+                item["raw_ioc"],
+                used_byok=False,
+                quota={"reason": "watchlist_auto_recheck"},
+            )
+            store.touch_watch_item(
+                user, item["normalized_ioc"], result.risk.score, result.risk.severity
+            )
+            refreshed += 1
+        except Exception:  # noqa: BLE001 - listing must survive provider failures
+            logger.exception("Auto-recheck failed for %s", item["normalized_ioc"])
+
+    if refreshed:
+        return store.list_watch_items(user)
+    return items
+
+
+def _checked_before(last_checked_at: str | None, cutoff: datetime) -> bool:
+    if not last_checked_at:
+        return True
+    try:
+        checked_at = datetime.fromisoformat(str(last_checked_at))
+    except ValueError:
+        return True
+    if checked_at.tzinfo is None:
+        checked_at = checked_at.replace(tzinfo=UTC)
+    return checked_at < cutoff
 
 
 @router.post("", response_model=dict, status_code=status.HTTP_201_CREATED)

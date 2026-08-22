@@ -1,4 +1,5 @@
-﻿import { MetricsPanel } from "@/components/dashboard/metrics-panel";
+﻿import { HistoryPanel } from "@/components/dashboard/history-panel";
+import { MetricsPanel } from "@/components/dashboard/metrics-panel";
 import { ProvidersPanel } from "@/components/dashboard/providers-panel";
 import { Shell } from "@/components/layout/shell";
 
@@ -7,7 +8,10 @@ export default function DashboardPage() {
     <Shell>
       <div className="space-y-4">
         <MetricsPanel />
-        <ProvidersPanel />
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <HistoryPanel />
+          <ProvidersPanel />
+        </div>
       </div>
     </Shell>
   );

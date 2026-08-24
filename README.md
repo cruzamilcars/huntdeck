@@ -8,16 +8,34 @@
 Cloud-native IOC (Indicator of Compromise) investigation hub. A SaaS-style MVP
 for threat intelligence:
 
+> **Paste an IOC — IP, domain, URL, hash, email, phone or social handle — and
+> get one normalized tactical report in seconds:** risk score, reputation from
+> **9 real threat-intel sources**, MITRE ATT&CK / NIST / ISO mappings,
+> analyst playbooks, relationship graph and PDF/CSV export.
+
+![HuntDeck investigation console](docs/huntdeck-investigation.png)
+
+**Why HuntDeck?** Analysts juggle VirusTotal, Shodan, AbuseIPDB, urlscan and
+breach databases by hand, then translate findings into framework mappings and
+next steps manually. HuntDeck orchestrates all of them through an MCP-style
+adapter layer, normalizes the evidence into one contract, and tells you what
+to do next — locally, with your own keys (BYOK), never sending data anywhere.
+
+| | |
+| --- | --- |
+| 🔎 **9 real providers** | VirusTotal · Shodan · AbuseIPDB · RDAP · urlscan.io · HIBP · OpenCNAM · AlienVault OTX · Social Presence |
+| 🧭 **Analyst playbooks** | Next-step guidance per IOC type distilled from the open-source Anthropic Cybersecurity Skills library |
+| 🗺️ **Framework mappings** | MITRE ATT&CK techniques + tiered NIST CSF 2.0 and ISO 27001 controls by severity |
+| 👁️ **Provider transparency** | Dashboard panel shows exactly which sources are live vs mocked and which API key unlocks each |
+| ⏱️ **Watchlist auto-recheck** | Tracked IOCs refresh themselves (TTL-based, quota-bounded) so verdicts never go stale |
+| 📦 **Ops-ready** | SQLite persistence out of the box (Supabase optional), freemium quota, service API keys for SIEM/CI, rate limiting, security headers |
+
 - **Next.js** (App Router, TypeScript, Tailwind) tactical frontend — terminal-style
-  IOC search and rigid modular result panels (reputation, geolocation, relationship
-  graph, community reports, MITRE/NIST/ISO mappings).
+  IOC search and rigid modular result panels.
 - **FastAPI** async backend that parses IOCs (IPv4/IPv6, domain, URL, MD5/SHA-1/SHA-256,
-  email, phone), orchestrates **MCP** provider clients and returns one normalized
+  email, phone, social handle), orchestrates **MCP** provider clients and returns one normalized
   tactical JSON contract.
-- **Supabase** for auth (JWT), PostgreSQL persistence, row-level security and
-  **BYOK** (Bring Your Own Key) secret storage via Supabase Vault.
 - Freemium quota (10 free investigations/day) with automatic BYOK fallback.
-- PDF/CSV export, rate limiting, strict security headers, redaction-friendly logs.
 
 > **Use responsibly.** This tool is for authorized security operations only.
 > See [SECURITY.md](SECURITY.md).
@@ -64,7 +82,9 @@ graph, community reports and MITRE/NIST/ISO mappings, with PDF/CSV export.
 
 ## Preview
 
-![HuntDeck investigation console](docs/huntdeck-investigation.png)
+The screenshot above is the live console investigating a malware hash: mock
+VirusTotal verdict, playbook steps with tools, MITRE/NIST/ISO mappings and the
+watchlist — all in one screen.
 
 ---
 

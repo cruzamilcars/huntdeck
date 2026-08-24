@@ -21,6 +21,7 @@ KEY_ENV_VARS = {
     "mcp-opencnam": "OPENCNAM_API_KEY",
     "mcp-otx": "OTX_API_KEY",
     "mcp-urlscan": "URLSCAN_API_KEY",
+    "mcp-greynoise": "GREYNOISE_API_KEY",
 }
 
 # Adapters that operate fully (or with graceful degradation) without a key.

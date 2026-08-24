@@ -23,7 +23,7 @@ to do next — locally, with your own keys (BYOK), never sending data anywhere.
 
 | | |
 | --- | --- |
-| 🔎 **9 real providers** | VirusTotal · Shodan · AbuseIPDB · RDAP · urlscan.io · HIBP · OpenCNAM · AlienVault OTX · Social Presence |
+| 🔎 **10 real providers** | VirusTotal · Shodan · AbuseIPDB · RDAP · urlscan.io · HIBP · OpenCNAM · AlienVault OTX · GreyNoise · Social Presence |
 | 🧭 **Analyst playbooks** | Next-step guidance per IOC type distilled from the open-source Anthropic Cybersecurity Skills library |
 | 🗺️ **Framework mappings** | MITRE ATT&CK techniques + tiered NIST CSF 2.0 and ISO 27001 controls by severity |
 | 👁️ **Provider transparency** | Dashboard panel shows exactly which sources are live vs mocked and which API key unlocks each |
@@ -48,9 +48,9 @@ to do next — locally, with your own keys (BYOK), never sending data anywhere.
 normalized tactical report: risk score, reputation, geolocation, relationship
 graph, community reports and MITRE/NIST/ISO mappings, with PDF/CSV export.
 
-> **Provider status:** **all nine providers are real adapters** — VirusTotal,
-> AbuseIPDB, Shodan, Have I Been Pwned, OpenCNAM and AlienVault OTX need their
-> free `*_API_KEY` env vars (defaults to mocks when unset); **urlscan.io, RDAP
+> **Provider status:** **all ten providers are real adapters** — VirusTotal,
+> AbuseIPDB, Shodan, Have I Been Pwned, OpenCNAM, AlienVault OTX and GreyNoise
+> need their free `*_API_KEY` env vars (defaults to mocks when unset); **urlscan.io, RDAP
 > and Social Presence are always live without a key** (RDAP uses the bootstrap
 > registry at rdap.org; urlscan.io serves its search API anonymously with a
 > reduced quota — add `URLSCAN_API_KEY` to lift it; Social Presence checks
@@ -149,6 +149,7 @@ Copy `.env.example` → split the variables into the files each app reads:
 | `HIBP_API_KEY` | Optional. Real Have I Been Pwned adapter (email breaches; score/verdict per data class). Falls back to mock when unset. |
 | `OPENCNAM_API_KEY` | Optional. Real OpenCNAM adapter (phone CNAM/carrier). Falls back to mock when unset. |
 | `OTX_API_KEY` | Optional. Real AlienVault OTX adapter (threat pulses for IP/domain/URL/hash). Falls back to mock when unset. |
+| `GREYNOISE_API_KEY` | Optional. Real GreyNoise Community adapter (IPv4 scanner classification: benign RIOT services vs malicious internet noise). Falls back to mock when unset. |
 | `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | Optional. Enables the Supabase store (PostgREST persistence + atomic quota RPC). Falls back to local SQLite when unset. |
 | `DATABASE_PATH` | Local durable store path (default `data/huntdeck.db`). |
 

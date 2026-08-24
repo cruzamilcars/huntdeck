@@ -13,6 +13,7 @@ on failure).
 import pytest
 
 from app.agents.mcp.abuseipdb import AbuseIpdbMcpClient
+from app.agents.mcp.greynoise import GreynoiseMcpClient
 from app.agents.mcp.hibp import HibpMcpClient
 from app.agents.mcp.opencnam import OpenCnamMcpClient
 from app.agents.mcp.otx import OtxMcpClient
@@ -101,6 +102,12 @@ async def test_opencnam_phone_live() -> None:
 async def test_otx_ip_live() -> None:
     settings = get_settings()
     await _assert_responds(OtxMcpClient(api_key=settings.otx_api_key), "8.8.8.8")
+
+
+@_requires("greynoise_api_key")
+async def test_greynoise_ip_live() -> None:
+    settings = get_settings()
+    await _assert_responds(GreynoiseMcpClient(api_key=settings.greynoise_api_key), "8.8.8.8")
 
 
 async def test_social_presence_live() -> None:

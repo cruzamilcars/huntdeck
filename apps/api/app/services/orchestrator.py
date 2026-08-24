@@ -15,6 +15,7 @@ from app.services.playbooks import playbook_for
 
 def _default_clients() -> dict[str, McpClient]:
     from app.agents.mcp.abuseipdb import AbuseIpdbMcpClient
+    from app.agents.mcp.greynoise import GreynoiseMcpClient
     from app.agents.mcp.hibp import HibpMcpClient
     from app.agents.mcp.opencnam import OpenCnamMcpClient
     from app.agents.mcp.otx import OtxMcpClient
@@ -32,6 +33,7 @@ def _default_clients() -> dict[str, McpClient]:
         "mcp-hibp": MockMcpClient("mcp-hibp"),
         "mcp-opencnam": MockMcpClient("mcp-opencnam"),
         "mcp-otx": MockMcpClient("mcp-otx"),
+        "mcp-greynoise": MockMcpClient("mcp-greynoise"),
         "mcp-rdap": RdapMcpClient(),
         "mcp-urlscan": UrlScanMcpClient(api_key=settings.urlscan_api_key),
         "mcp-social": SocialPresenceMcpClient(),
@@ -48,6 +50,8 @@ def _default_clients() -> dict[str, McpClient]:
         clients["mcp-opencnam"] = OpenCnamMcpClient(api_key=settings.opencnam_api_key)
     if settings.otx_api_key:
         clients["mcp-otx"] = OtxMcpClient(api_key=settings.otx_api_key)
+    if settings.greynoise_api_key:
+        clients["mcp-greynoise"] = GreynoiseMcpClient(api_key=settings.greynoise_api_key)
     return clients
 
 
@@ -85,7 +89,17 @@ class InvestigationOrchestrator:
 
     def _select_providers(self, ioc_type: IocType | str) -> list[str]:
         match IocType(ioc_type):
-            case IocType.IPV4 | IocType.IPV6:
+            case IocType.IPV4:
+                return [
+                    "mcp-virustotal",
+                    "mcp-shodan",
+                    "mcp-abuseipdb",
+                    "mcp-rdap",
+                    "mcp-otx",
+                    "mcp-greynoise",
+                ]
+            case IocType.IPV6:
+                # GreyNoise Community only accepts IPv4.
                 return ["mcp-virustotal", "mcp-shodan", "mcp-abuseipdb", "mcp-rdap", "mcp-otx"]
             case IocType.DOMAIN:
                 return ["mcp-virustotal", "mcp-shodan", "mcp-urlscan", "mcp-rdap", "mcp-otx"]

@@ -29,6 +29,7 @@ async def test_orchestrator_returns_tactical_contract_for_ipv4() -> None:
         "mcp-abuseipdb",
         "mcp-rdap",
         "mcp-otx",
+        "mcp-greynoise",
     ]
 
 

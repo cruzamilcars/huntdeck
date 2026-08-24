@@ -96,6 +96,7 @@ El backend devuelve un JSON consolidado con estas secciones:
 | `mcp-hibp` | email | `HIBP_API_KEY` |
 | `mcp-opencnam` | phone | `OPENCNAM_API_KEY` |
 | `mcp-otx` | ipv4, ipv6, domain, url, hashes | `OTX_API_KEY` |
+| `mcp-greynoise` | ipv4 | `GREYNOISE_API_KEY` |
 | `mcp-social` | social_handle | siempre activo (GitHub/Reddit/Telegram) |
 
 Sin key configurada, los adapters key-gated caen a mocks deterministas;

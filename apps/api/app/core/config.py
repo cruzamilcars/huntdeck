@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     hibp_api_key: str | None = None
     opencnam_api_key: str | None = None
     otx_api_key: str | None = None
+    greynoise_api_key: str | None = None
     supabase_url: str | None = None
     supabase_service_role_key: str | None = None
     database_path: str = Field(

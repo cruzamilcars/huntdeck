@@ -15,6 +15,10 @@ for threat intelligence:
 
 ![HuntDeck investigation console](docs/huntdeck-investigation.png)
 
+<p align="center">
+  <img src="docs/huntdeck-demo.gif" alt="HuntDeck live demo — investigate a hash end to end" width="860">
+</p>
+
 **Why HuntDeck?** Analysts juggle VirusTotal, Shodan, AbuseIPDB, urlscan and
 breach databases by hand, then translate findings into framework mappings and
 next steps manually. HuntDeck orchestrates all of them through an MCP-style

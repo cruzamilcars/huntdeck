@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from app.core.config import Settings, get_settings
 from app.core.security import CurrentUser, get_current_user
 from app.domain.ioc.parser import parse_ioc
 from app.domain.ioc.types import IocType
@@ -20,26 +21,31 @@ async def list_watchlist(
     user: CurrentUser = Depends(get_current_user),
     store=Depends(get_quota_store),
     orchestrator: InvestigationOrchestrator = Depends(get_orchestrator),
-    recheck_ttl_hours: int = Query(default=24, ge=0, le=720),
-    recheck_max: int = Query(default=3, ge=0, le=10),
+    settings: Settings = Depends(get_settings),
+    recheck_ttl_hours: int | None = Query(default=None, ge=0, le=720),
+    recheck_max: int | None = Query(default=None, ge=0, le=10),
 ) -> list[dict]:
     """List watch items, lazily refreshing the stalest ones first.
 
-    Items never checked or older than ``recheck_ttl_hours`` are re-investigated
-    automatically, at most ``recheck_max`` per call so a single request can
-    never exhaust quota. Set ``recheck_max=0`` for a read-only listing.
+    Items never checked or older than ``recheck_ttl_hours`` (default from
+    ``WATCHLIST_RECHECK_TTL_HOURS``) are re-investigated automatically, at
+    most ``recheck_max`` (default ``WATCHLIST_RECHECK_MAX``) per call so a
+    single request can never exhaust quota. Set ``recheck_max=0`` for a
+    read-only listing.
     """
     items = store.list_watch_items(user)
-    if recheck_max == 0:
+    ttl = settings.watchlist_recheck_ttl_hours if recheck_ttl_hours is None else recheck_ttl_hours
+    budget = settings.watchlist_recheck_max if recheck_max is None else recheck_max
+    if budget == 0:
         return items
 
-    cutoff = datetime.now(UTC) - timedelta(hours=recheck_ttl_hours)
+    cutoff = datetime.now(UTC) - timedelta(hours=ttl)
     stale = [item for item in items if _checked_before(item.get("last_checked_at"), cutoff)]
     stale.sort(key=lambda item: item.get("last_checked_at") or "")
 
     refreshed = 0
     for item in stale:
-        if refreshed >= recheck_max:
+        if refreshed >= budget:
             break
         try:
             result = await orchestrator.investigate(

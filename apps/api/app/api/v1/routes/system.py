@@ -22,6 +22,7 @@ KEY_ENV_VARS = {
     "mcp-otx": "OTX_API_KEY",
     "mcp-urlscan": "URLSCAN_API_KEY",
     "mcp-greynoise": "GREYNOISE_API_KEY",
+    "mcp-misp": "MISP_URL + MISP_API_KEY",
 }
 
 # Adapters that operate fully (or with graceful degradation) without a key.
@@ -49,6 +50,8 @@ async def system_providers(
 
 
 def _is_configured(name: str, settings) -> bool:
+    if name == "mcp-misp":
+        return bool(settings.misp_url and settings.misp_api_key)
     if name in ALWAYS_LIVE:
         return True
     env_var = KEY_ENV_VARS.get(name)

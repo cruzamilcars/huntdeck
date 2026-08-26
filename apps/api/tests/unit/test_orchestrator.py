@@ -30,6 +30,7 @@ async def test_orchestrator_returns_tactical_contract_for_ipv4() -> None:
         "mcp-rdap",
         "mcp-otx",
         "mcp-greynoise",
+        "mcp-misp",
     ]
 
 
@@ -45,8 +46,8 @@ async def test_email_uses_hibp_provider() -> None:
     response = await InvestigationOrchestrator().investigate("analyst@example.com")
 
     assert response.ioc.type == IocType.EMAIL
-    assert response.mcp_servers_queried == ["mcp-hibp"]
-    assert response.sources == ["mcp-hibp"]
+    assert response.mcp_servers_queried == ["mcp-hibp", "mcp-misp"]
+    assert response.sources == ["mcp-hibp", "mcp-misp"]
 
 
 async def test_phone_uses_opencnam_provider() -> None:

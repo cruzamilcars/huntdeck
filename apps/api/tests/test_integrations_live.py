@@ -15,6 +15,7 @@ import pytest
 from app.agents.mcp.abuseipdb import AbuseIpdbMcpClient
 from app.agents.mcp.greynoise import GreynoiseMcpClient
 from app.agents.mcp.hibp import HibpMcpClient
+from app.agents.mcp.misp import MispMcpClient
 from app.agents.mcp.opencnam import OpenCnamMcpClient
 from app.agents.mcp.otx import OtxMcpClient
 from app.agents.mcp.rdap import RdapMcpClient
@@ -108,6 +109,19 @@ async def test_otx_ip_live() -> None:
 async def test_greynoise_ip_live() -> None:
     settings = get_settings()
     await _assert_responds(GreynoiseMcpClient(api_key=settings.greynoise_api_key), "8.8.8.8")
+
+
+def _requires_misp():
+    settings = get_settings()
+    ready = bool(settings.misp_url and settings.misp_api_key)
+    return pytest.mark.skipif(not ready, reason="MISP_URL/MISP_API_KEY not configured")
+
+
+@_requires_misp()
+async def test_misp_live() -> None:
+    settings = get_settings()
+    client = MispMcpClient(base_url=settings.misp_url, api_key=settings.misp_api_key)
+    await _assert_responds(client, "example.com")
 
 
 async def test_social_presence_live() -> None:

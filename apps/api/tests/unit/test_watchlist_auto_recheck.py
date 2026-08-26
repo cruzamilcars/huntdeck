@@ -85,3 +85,25 @@ def test_fresh_items_are_not_rechecked(watch_env) -> None:
     client.get("/api/v1/watchlist?recheck_ttl_hours=24")
 
     assert fake.calls == []
+
+
+def test_settings_defaults_apply_when_params_absent(watch_env, monkeypatch) -> None:
+    """WATCHLIST_RECHECK_* settings drive the route when query params are omitted."""
+    from app.main import app as root_app
+
+    store, user, fake, _client = watch_env
+    store.add_watch_item(user, parse_ioc("8.8.8.8"))
+
+    # Re-register the route dependency with custom settings via env override.
+
+    monkeypatch.setenv("WATCHLIST_RECHECK_MAX", "0")
+    import app.core.config as config_module
+
+    config_module.get_settings.cache_clear()
+    fresh_client = TestClient(root_app)
+
+    response = fresh_client.get("/api/v1/watchlist")
+    assert response.status_code == 200
+    assert fake.calls == []  # budget 0 -> read-only listing
+
+    config_module.get_settings.cache_clear()

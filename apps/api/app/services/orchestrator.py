@@ -17,6 +17,7 @@ def _default_clients() -> dict[str, McpClient]:
     from app.agents.mcp.abuseipdb import AbuseIpdbMcpClient
     from app.agents.mcp.greynoise import GreynoiseMcpClient
     from app.agents.mcp.hibp import HibpMcpClient
+    from app.agents.mcp.misp import MispMcpClient
     from app.agents.mcp.opencnam import OpenCnamMcpClient
     from app.agents.mcp.otx import OtxMcpClient
     from app.agents.mcp.rdap import RdapMcpClient
@@ -34,6 +35,7 @@ def _default_clients() -> dict[str, McpClient]:
         "mcp-opencnam": MockMcpClient("mcp-opencnam"),
         "mcp-otx": MockMcpClient("mcp-otx"),
         "mcp-greynoise": MockMcpClient("mcp-greynoise"),
+        "mcp-misp": MockMcpClient("mcp-misp"),
         "mcp-rdap": RdapMcpClient(),
         "mcp-urlscan": UrlScanMcpClient(api_key=settings.urlscan_api_key),
         "mcp-social": SocialPresenceMcpClient(),
@@ -52,6 +54,12 @@ def _default_clients() -> dict[str, McpClient]:
         clients["mcp-otx"] = OtxMcpClient(api_key=settings.otx_api_key)
     if settings.greynoise_api_key:
         clients["mcp-greynoise"] = GreynoiseMcpClient(api_key=settings.greynoise_api_key)
+    if settings.misp_url and settings.misp_api_key:
+        clients["mcp-misp"] = MispMcpClient(
+            base_url=settings.misp_url,
+            api_key=settings.misp_api_key,
+            verify_ssl=settings.misp_verify_ssl,
+        )
     return clients
 
 
@@ -97,18 +105,33 @@ class InvestigationOrchestrator:
                     "mcp-rdap",
                     "mcp-otx",
                     "mcp-greynoise",
+                    "mcp-misp",
                 ]
             case IocType.IPV6:
                 # GreyNoise Community only accepts IPv4.
-                return ["mcp-virustotal", "mcp-shodan", "mcp-abuseipdb", "mcp-rdap", "mcp-otx"]
+                return [
+                    "mcp-virustotal",
+                    "mcp-shodan",
+                    "mcp-abuseipdb",
+                    "mcp-rdap",
+                    "mcp-otx",
+                    "mcp-misp",
+                ]
             case IocType.DOMAIN:
-                return ["mcp-virustotal", "mcp-shodan", "mcp-urlscan", "mcp-rdap", "mcp-otx"]
+                return [
+                    "mcp-virustotal",
+                    "mcp-shodan",
+                    "mcp-urlscan",
+                    "mcp-rdap",
+                    "mcp-otx",
+                    "mcp-misp",
+                ]
             case IocType.URL:
-                return ["mcp-virustotal", "mcp-urlscan", "mcp-otx"]
+                return ["mcp-virustotal", "mcp-urlscan", "mcp-otx", "mcp-misp"]
             case IocType.MD5 | IocType.SHA1 | IocType.SHA256:
-                return ["mcp-virustotal", "mcp-otx"]
+                return ["mcp-virustotal", "mcp-otx", "mcp-misp"]
             case IocType.EMAIL:
-                return ["mcp-hibp"]
+                return ["mcp-hibp", "mcp-misp"]
             case IocType.PHONE:
                 return ["mcp-opencnam"]
             case IocType.SOCIAL_HANDLE:

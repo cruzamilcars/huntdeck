@@ -1,5 +1,42 @@
 # Arquitectura de carpetas
 
+## Flujo de investigacion
+
+```mermaid
+flowchart LR
+    subgraph Client["apps/web (Next.js)"]
+        UI["Investigation console<br/>Dashboard · Watchlist"]
+    end
+
+    subgraph API["apps/api (FastAPI)"]
+        RT["/api/v1 routes<br/>auth · quota · rate-limit"]
+        ORCH["InvestigationOrchestrator<br/>risk summary · mappings · playbooks"]
+        ST[("Store<br/>SQLite / Supabase")]
+    end
+
+    subgraph Adapters["MCP adapter protocol"]
+        VT[mcp-virustotal]
+        SH[mcp-shodan]
+        AB[mcp-abuseipdb]
+        RD[mcp-rdap]
+        US[mcp-urlscan]
+        HB[mcp-hibp]
+        OC[mcp-opencnam]
+        OT[mcp-otx]
+        GN[mcp-greynoise]
+        SP[mcp-social]
+    end
+
+    UI -->|POST ioc| RT --> ORCH
+    ORCH -->|query per IOC type| Adapters
+    ORCH -->|persist + history| ST
+    RT -->|quota reserve| ST
+```
+
+Diez adapters reales detras del mismo protocolo; los key-gated caen a mocks
+deterministas hasta configurar su `*_API_KEY`. `GET /api/v1/system/providers`
+reporta el estado real/mock de cada uno.
+
 ```text
 osint-mcp-hub/
   apps/
@@ -97,6 +134,7 @@ El backend devuelve un JSON consolidado con estas secciones:
 | `mcp-opencnam` | phone | `OPENCNAM_API_KEY` |
 | `mcp-otx` | ipv4, ipv6, domain, url, hashes | `OTX_API_KEY` |
 | `mcp-greynoise` | ipv4 | `GREYNOISE_API_KEY` |
+| `mcp-misp` | ipv4, ipv6, domain, url, hashes, email | tu instancia (`MISP_URL` + `MISP_API_KEY`) |
 | `mcp-social` | social_handle | siempre activo (GitHub/Reddit/Telegram) |
 
 Sin key configurada, los adapters key-gated caen a mocks deterministas;

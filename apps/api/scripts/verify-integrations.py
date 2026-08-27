@@ -24,6 +24,7 @@ from app.agents.mcp.otx import OtxMcpClient
 from app.agents.mcp.rdap import RdapMcpClient
 from app.agents.mcp.shodan import ShodanMcpClient
 from app.agents.mcp.social import SocialPresenceMcpClient
+from app.agents.mcp.urlhaus import UrlHausMcpClient
 from app.agents.mcp.urlscan import UrlScanMcpClient
 from app.agents.mcp.virustotal import VirusTotalMcpClient
 from app.core.config import Settings, get_settings
@@ -60,6 +61,7 @@ PROBES = [
     ("mcp-greynoise", _keyed(GreynoiseMcpClient, "greynoise_api_key"), "8.8.8.8"),
     ("mcp-social", lambda _s: SocialPresenceMcpClient(), "@octocat"),
     ("mcp-misp", _misp, "example.com"),
+    ("mcp-urlhaus", _keyed(UrlHausMcpClient, "urlhaus_api_key"), "http://w-diarium.pw/malware.exe"),
 ]
 
 

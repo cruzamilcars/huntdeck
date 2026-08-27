@@ -135,6 +135,7 @@ El backend devuelve un JSON consolidado con estas secciones:
 | `mcp-otx` | ipv4, ipv6, domain, url, hashes | `OTX_API_KEY` |
 | `mcp-greynoise` | ipv4 | `GREYNOISE_API_KEY` |
 | `mcp-misp` | ipv4, ipv6, domain, url, hashes, email | tu instancia (`MISP_URL` + `MISP_API_KEY`) |
+| `mcp-urlhaus` | domain, url, hashes | `URLHAUS_API_KEY` |
 | `mcp-social` | social_handle | siempre activo (GitHub/Reddit/Telegram) |
 
 Sin key configurada, los adapters key-gated caen a mocks deterministas;

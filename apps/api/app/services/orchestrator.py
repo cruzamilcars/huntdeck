@@ -23,6 +23,7 @@ def _default_clients() -> dict[str, McpClient]:
     from app.agents.mcp.rdap import RdapMcpClient
     from app.agents.mcp.shodan import ShodanMcpClient
     from app.agents.mcp.social import SocialPresenceMcpClient
+    from app.agents.mcp.urlhaus import UrlHausMcpClient
     from app.agents.mcp.urlscan import UrlScanMcpClient
     from app.agents.mcp.virustotal import VirusTotalMcpClient
 
@@ -36,6 +37,7 @@ def _default_clients() -> dict[str, McpClient]:
         "mcp-otx": MockMcpClient("mcp-otx"),
         "mcp-greynoise": MockMcpClient("mcp-greynoise"),
         "mcp-misp": MockMcpClient("mcp-misp"),
+        "mcp-urlhaus": MockMcpClient("mcp-urlhaus"),
         "mcp-rdap": RdapMcpClient(),
         "mcp-urlscan": UrlScanMcpClient(api_key=settings.urlscan_api_key),
         "mcp-social": SocialPresenceMcpClient(),
@@ -60,6 +62,8 @@ def _default_clients() -> dict[str, McpClient]:
             api_key=settings.misp_api_key,
             verify_ssl=settings.misp_verify_ssl,
         )
+    if settings.urlhaus_api_key:
+        clients["mcp-urlhaus"] = UrlHausMcpClient(api_key=settings.urlhaus_api_key)
     return clients
 
 
@@ -125,11 +129,12 @@ class InvestigationOrchestrator:
                     "mcp-rdap",
                     "mcp-otx",
                     "mcp-misp",
+                    "mcp-urlhaus",
                 ]
             case IocType.URL:
-                return ["mcp-virustotal", "mcp-urlscan", "mcp-otx", "mcp-misp"]
+                return ["mcp-virustotal", "mcp-urlscan", "mcp-otx", "mcp-misp", "mcp-urlhaus"]
             case IocType.MD5 | IocType.SHA1 | IocType.SHA256:
-                return ["mcp-virustotal", "mcp-otx", "mcp-misp"]
+                return ["mcp-virustotal", "mcp-otx", "mcp-misp", "mcp-urlhaus"]
             case IocType.EMAIL:
                 return ["mcp-hibp", "mcp-misp"]
             case IocType.PHONE:

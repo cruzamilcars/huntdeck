@@ -29,6 +29,8 @@ def test_providers_reports_modes_and_coverage() -> None:
     assert set(providers["mcp-social"]["ioc_types"]) == {"social_handle"}
     assert set(providers["mcp-greynoise"]["ioc_types"]) == {"ipv4"}
     assert providers["mcp-greynoise"]["key_env_var"] == "GREYNOISE_API_KEY"
+    assert set(providers["mcp-urlhaus"]["ioc_types"]) == {"domain", "md5", "sha1", "sha256", "url"}
+    assert providers["mcp-urlhaus"]["key_env_var"] == "URLHAUS_API_KEY"
 
 
 def test_providers_urlscan_configured_without_key() -> None:

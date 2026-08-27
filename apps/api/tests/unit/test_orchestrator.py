@@ -33,6 +33,12 @@ async def test_orchestrator_returns_tactical_contract_for_ipv4() -> None:
         "mcp-misp",
     ]
 
+    # URLhaus joins domain/url/hash routes alongside MISP.
+    domain = await InvestigationOrchestrator().investigate("example.com")
+    assert "mcp-urlhaus" in domain.mcp_servers_queried
+    url = await InvestigationOrchestrator().investigate("http://w-diarium.pw/malware.exe")
+    assert "mcp-urlhaus" in url.mcp_servers_queried
+
 
 async def test_orchestrator_rejects_unknown_without_provider_calls() -> None:
     response = await InvestigationOrchestrator().investigate("not an ioc")

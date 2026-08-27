@@ -17,6 +17,7 @@ from app.agents.mcp.greynoise import GreynoiseMcpClient
 from app.agents.mcp.hibp import HibpMcpClient
 from app.agents.mcp.misp import MispMcpClient
 from app.agents.mcp.opencnam import OpenCnamMcpClient
+from app.agents.mcp.urlhaus import UrlHausMcpClient
 from app.agents.mcp.otx import OtxMcpClient
 from app.agents.mcp.rdap import RdapMcpClient
 from app.agents.mcp.shodan import ShodanMcpClient
@@ -122,6 +123,14 @@ async def test_misp_live() -> None:
     settings = get_settings()
     client = MispMcpClient(base_url=settings.misp_url, api_key=settings.misp_api_key)
     await _assert_responds(client, "example.com")
+
+
+@_requires("urlhaus_api_key")
+async def test_urlhaus_live() -> None:
+    settings = get_settings()
+    await _assert_responds(
+        UrlHausMcpClient(api_key=settings.urlhaus_api_key), "http://w-diarium.pw/malware.exe"
+    )
 
 
 async def test_social_presence_live() -> None:

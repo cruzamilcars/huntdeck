@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     )
     misp_api_key: str | None = None
     misp_verify_ssl: bool = True
+    urlhaus_api_key: str | None = None
     supabase_url: str | None = None
     supabase_service_role_key: str | None = None
     database_path: str = Field(

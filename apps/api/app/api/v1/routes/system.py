@@ -23,6 +23,7 @@ KEY_ENV_VARS = {
     "mcp-urlscan": "URLSCAN_API_KEY",
     "mcp-greynoise": "GREYNOISE_API_KEY",
     "mcp-misp": "MISP_URL + MISP_API_KEY",
+    "mcp-urlhaus": "URLHAUS_API_KEY",
 }
 
 # Adapters that operate fully (or with graceful degradation) without a key.

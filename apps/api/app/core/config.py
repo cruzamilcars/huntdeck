@@ -18,6 +18,9 @@ class Settings(BaseSettings):
         default=3, description="Max watchlist auto-rechecks per listing request"
     )
     supabase_jwt_secret: str | None = None
+    supabase_anon_key: str | None = None
+    supabase_secret_key: str | None = None
+    supabase_jwks_url: str | None = None
     virustotal_api_key: str | None = None
     abuseipdb_api_key: str | None = None
     shodan_api_key: str | None = None

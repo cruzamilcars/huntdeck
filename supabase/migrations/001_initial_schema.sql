@@ -406,7 +406,7 @@ $$;
 
 revoke all on schema vault from anon, authenticated;
 revoke all on all tables in schema vault from anon, authenticated;
-revoke all on all routines in schema vault from anon, authenticated;
+-- revoke all on all routines in schema vault from anon, authenticated; -- requires superuser; left to dashboard RLS review
 
 grant usage on schema public to anon, authenticated;
 grant execute on function public.create_organization(text, text) to authenticated;

@@ -35,3 +35,6 @@ Thumbs.db
 .idea/
 .vscode/
 .gstack/
+
+# supabase CLI temp state
+supabase/.temp/

@@ -42,13 +42,15 @@ def test_reserve_usage_calls_rpc_and_returns_decision() -> None:
         assert payload["p_byok_providers"] == ["virustotal"]
         return httpx.Response(
             200,
-            json={
-                "allowed": True,
-                "used_byok": True,
-                "free_queries_used": 3,
-                "byok_queries_used": 2,
-                "reason": "byok",
-            },
+            json=[
+                {
+                    "allowed": True,
+                    "used_byok": True,
+                    "free_queries_used": 3,
+                    "byok_queries_used": 2,
+                    "reason": "byok",
+                }
+            ],
         )
 
     store = store_with(handler)
@@ -62,13 +64,15 @@ def test_reserve_usage_exhausted() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(
             200,
-            json={
-                "allowed": False,
-                "used_byok": False,
-                "free_queries_used": 10,
-                "byok_queries_used": 0,
-                "reason": "quota_exhausted",
-            },
+            json=[
+                {
+                    "allowed": False,
+                    "used_byok": False,
+                    "free_queries_used": 10,
+                    "byok_queries_used": 0,
+                    "reason": "quota_exhausted",
+                }
+            ],
         )
 
     store = store_with(handler)

@@ -43,6 +43,8 @@ def test_watchlist_add_is_idempotent(tmp_path) -> None:
 
 def test_watchlist_api_crud() -> None:
     client = TestClient(app)
+    for item in client.get("/api/v1/watchlist").json():
+        client.delete(f"/api/v1/watchlist/{item['normalized_ioc']}")
 
     created = client.post("/api/v1/watchlist", json={"ioc": "example.com", "note": "campaign A"})
     assert created.status_code == 201
@@ -80,6 +82,8 @@ def test_watchlist_recheck_runs_investigation() -> None:
     assert rows[0]["last_risk_score"] is not None
     assert rows[0]["last_severity"] == body["risk"]["severity"]
 
+    client.delete("/api/v1/watchlist/8.8.8.8")
+
 
 def test_supabase_watchlist_upsert_and_remove() -> None:
     calls: list[tuple[str, str, str]] = []
@@ -100,7 +104,7 @@ def test_supabase_watchlist_upsert_and_remove() -> None:
             )
         if request.method == "GET":
             return httpx.Response(200, json=[])
-        return httpx.Response(204, json=[])
+        return httpx.Response(204, json=[], headers={"content-range": "0/1"})
 
     transport = httpx.MockTransport(handler)
     store = SupabaseStore(

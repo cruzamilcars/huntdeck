@@ -1,6 +1,7 @@
--- OSINT MCP Hub: atomic daily quota reservation.
--- Moved to SQL instead of read-then-write from the API so concurrent
--- requests cannot double-spend the free quota (row lock via SELECT ... FOR UPDATE).
+-- 006_fix_reserve_rpc_ambiguous_columns.sql
+-- Replaces the broken reserve_daily_usage function.
+-- The original had ambiguous column references (local variables named the same
+-- as table columns), which caused 'column reference is ambiguous' errors.
 
 create or replace function public.reserve_daily_usage(
   p_org_id uuid,
@@ -44,14 +45,14 @@ begin
   if v_free < p_daily_free_quota then
     v_free := v_free + 1;
     update public.daily_usage du
-      set du.free_queries_used = v_free, du.updated_at = now()
+      set free_queries_used = v_free, updated_at = now()
     where du.org_id = p_org_id and du.user_id = p_user_id and du.usage_date = p_usage_date;
     return query
       select true, false, v_free, v_byok, 'platform_quota'::text;
   elsif p_byok_providers is not null and cardinality(p_byok_providers) > 0 then
     v_byok := v_byok + 1;
     update public.daily_usage du
-      set du.byok_queries_used = v_byok, du.updated_at = now()
+      set byok_queries_used = v_byok, updated_at = now()
     where du.org_id = p_org_id and du.user_id = p_user_id and du.usage_date = p_usage_date;
     return query
       select true, true, v_free, v_byok, 'byok'::text;

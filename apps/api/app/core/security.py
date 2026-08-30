@@ -64,7 +64,11 @@ async def get_current_user(
         )
 
     if not settings.supabase_jwt_secret:
-        return CurrentUser(user_id="dev-user", org_id=org_id, email="dev@local")
+        return CurrentUser(
+            user_id=_default_dev_user_id(),
+            org_id=org_id,
+            email="dev@local",
+        )
 
     if credentials is None:
         raise HTTPException(
@@ -102,8 +106,34 @@ async def get_current_user(
 
 def _normalize_org_id(value: str | None) -> str:
     if value is None or not value.strip():
-        return "dev-org"
+        return _default_dev_org_id()
     try:
         return str(UUID(value))
     except ValueError:
         return value.strip()
+
+
+_DEV_ORG_ID = "00000000-0000-0000-0000-000000000001"
+_DEV_USER_ID = "00000000-0000-0000-0000-000000000002"
+
+
+def _default_dev_org_id() -> str:
+    from app.core.config import get_settings
+
+    settings = get_settings()
+    if settings.supabase_url and (
+        settings.supabase_service_role_key or settings.supabase_secret_key
+    ):
+        return _DEV_ORG_ID
+    return "dev-org"
+
+
+def _default_dev_user_id() -> str:
+    from app.core.config import get_settings
+
+    settings = get_settings()
+    if settings.supabase_url and (
+        settings.supabase_service_role_key or settings.supabase_secret_key
+    ):
+        return _DEV_USER_ID
+    return "dev-user"

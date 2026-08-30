@@ -81,7 +81,10 @@ class SupabaseStore:
         }
         response = self._client.post("/rpc/reserve_daily_usage", json=payload)
         response.raise_for_status()
-        row = response.json()
+        rows: list[dict[str, Any]] = response.json()
+        if not rows:
+            raise RuntimeError("reserve_daily_usage returned no rows")
+        row = rows[0]
         return (
             bool(row["allowed"]),
             bool(row["used_byok"]),
@@ -233,8 +236,19 @@ class SupabaseStore:
                 "org_id": f"eq.{user.org_id}",
                 "user_id": f"eq.{user.user_id}",
             },
+            headers={"Prefer": "count=exact"},
         )
         response.raise_for_status()
+        content_range = response.headers.get("content-range", "")
+        if "/" in content_range:
+            total = content_range.split("/")[-1]
+            if total != "*":
+                return int(total) > 0
+        if response.text.strip():
+            try:
+                return len(response.json()) > 0
+            except (ValueError, TypeError):
+                pass
         return True
 
     def touch_watch_item(

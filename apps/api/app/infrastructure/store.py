@@ -82,6 +82,8 @@ class SqliteStore:
         self._db_path = Path(db_path)
         self._db_path.parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as connection:
+            connection.execute("PRAGMA journal_mode=WAL")
+            connection.execute("PRAGMA synchronous=NORMAL")
             connection.executescript(SCHEMA)
         self._connection = self._connect(check_same_thread=False)
         self._connection.row_factory = sqlite3.Row

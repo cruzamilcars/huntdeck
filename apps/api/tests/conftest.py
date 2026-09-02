@@ -1,9 +1,7 @@
-import os
 import pytest
 import httpx
 
 from app.core.config import get_settings
-from app.domain.quota import service as quota_module
 
 
 def _supabase_dev_org_reset():

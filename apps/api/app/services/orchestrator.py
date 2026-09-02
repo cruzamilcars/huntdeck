@@ -1,3 +1,8 @@
+import asyncio
+import logging
+from functools import lru_cache
+from time import time
+
 from app.agents.mcp.client import McpClient
 from app.agents.mcp.mock_server import MockMcpClient
 from app.core.config import get_settings
@@ -11,6 +16,30 @@ from app.schemas.investigation import (
     TacticalMappings,
 )
 from app.services.playbooks import playbook_for
+
+logger = logging.getLogger(__name__)
+
+# Simple in-memory cache for investigation results
+_CACHE_TTL_SECONDS = 5 * 60
+_CACHE_MAX_ENTRIES = 256
+_cache: dict[str, tuple[float, InvestigationResponse]] = {}
+
+
+def _cache_get(key: str) -> InvestigationResponse | None:
+    entry = _cache.get(key)
+    if entry is None:
+        return None
+    ts, value = entry
+    if time() - ts > _CACHE_TTL_SECONDS:
+        _cache.pop(key, None)
+        return None
+    return value
+
+
+def _cache_put(key: str, value: InvestigationResponse) -> None:
+    if len(_cache) >= _CACHE_MAX_ENTRIES:
+        _cache.pop(next(iter(_cache)), None)
+    _cache[key] = (time(), value)
 
 
 def _default_clients() -> dict[str, McpClient]:
@@ -80,14 +109,35 @@ class InvestigationOrchestrator:
     ) -> InvestigationResponse:
         parsed_ioc = parse_ioc(raw_ioc)
         provider_names = self._select_providers(parsed_ioc.type)
-        observations = [
-            await self.clients[provider_name].query(parsed_ioc)
+        
+        # Cache lookup with TTL
+        cache_key = f"{parsed_ioc.value}:{parsed_ioc.type}"
+        cached = _cache_get(cache_key)
+        if cached is not None:
+            logger.debug("orchestrator.cache.hit", extra={"ioc": parsed_ioc.value})
+            return cached
+        
+        # Concurrent queries to all selected providers
+        tasks = [
+            self.clients[provider_name].query(parsed_ioc)
             for provider_name in provider_names
             if provider_name in self.clients
         ]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        observations = []
+        for provider_name, result in zip(
+            [p for p in provider_names if p in self.clients], results
+        ):
+            if isinstance(result, Exception):
+                logger.warning(
+                    "orchestrator.provider.error",
+                    extra={"provider": provider_name, "error": str(result)},
+                )
+                continue
+            observations.append(result)
         risk = self._summarize_risk(observations)
 
-        return InvestigationResponse(
+        response = InvestigationResponse(
             ioc=parsed_ioc,
             risk=risk,
             modules=self._merge_modules(observations),
@@ -98,6 +148,8 @@ class InvestigationOrchestrator:
             used_byok=used_byok,
             quota=quota or {},
         )
+        _cache_put(cache_key, response)
+        return response
 
     def _select_providers(self, ioc_type: IocType | str) -> list[str]:
         match IocType(ioc_type):
@@ -456,5 +508,9 @@ _ATTACK_MAPPINGS: dict[IocType, list[tuple[str, str, str]]] = {
 }
 
 
+from functools import lru_cache
+
+
+@lru_cache
 def get_orchestrator() -> InvestigationOrchestrator:
     return InvestigationOrchestrator(clients=_default_clients())

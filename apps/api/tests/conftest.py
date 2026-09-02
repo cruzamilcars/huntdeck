@@ -43,12 +43,12 @@ def _supabase_dev_org_reset():
     except Exception:
         pass
 
+
 @pytest.fixture(autouse=True)
 def reset_supabase_daily_usage(request):
     """Reset Supabase dev org quota before integration tests if markers/environment allow."""
     is_integration = any(
-        "integration" in getattr(mark, "name", "")
-        for mark in getattr(request.node, "marks", [])
+        "integration" in getattr(mark, "name", "") for mark in getattr(request.node, "marks", [])
     ) or "integration" in str(getattr(request.node, "fspath", ""))
     if is_integration:
         _supabase_dev_org_reset()

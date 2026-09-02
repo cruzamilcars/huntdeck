@@ -19,6 +19,7 @@ def _supabase_dev_org_reset():
     dev_org = "00000000-0000-0000-0000-000000000001"
     dev_user = "00000000-0000-0000-0000-000000000002"
     from datetime import date
+
     today = date.today().isoformat()
 
     try:
@@ -30,12 +31,17 @@ def _supabase_dev_org_reset():
         httpx.post(
             f"{url}/daily_usage",
             headers={**headers, "Prefer": "resolution=merge-duplicates"},
-            json={"org_id": dev_org, "user_id": dev_user, "usage_date": today, "free_queries_used": 0, "byok_queries_used": 0},
+            json={
+                "org_id": dev_org,
+                "user_id": dev_user,
+                "usage_date": today,
+                "free_queries_used": 0,
+                "byok_queries_used": 0,
+            },
             timeout=10,
         )
     except Exception:
         pass
-
 
 @pytest.fixture(autouse=True)
 def reset_supabase_daily_usage(request):
@@ -43,7 +49,7 @@ def reset_supabase_daily_usage(request):
     is_integration = any(
         "integration" in getattr(mark, "name", "")
         for mark in getattr(request.node, "marks", [])
-    )
+    ) or "integration" in str(getattr(request.node, "fspath", ""))
     if is_integration:
         _supabase_dev_org_reset()
     yield

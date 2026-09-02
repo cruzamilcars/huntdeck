@@ -109,14 +109,15 @@ class InvestigationOrchestrator:
     ) -> InvestigationResponse:
         parsed_ioc = parse_ioc(raw_ioc)
         provider_names = self._select_providers(parsed_ioc.type)
-        
-        # Cache lookup with TTL
-        cache_key = f"{parsed_ioc.value}:{parsed_ioc.type}"
-        cached = _cache_get(cache_key)
-        if cached is not None:
-            logger.debug("orchestrator.cache.hit", extra={"ioc": parsed_ioc.value})
-            return cached
-        
+
+        # Cache lookup with TTL (skip cache when BYOK used or when caller supplies quota)
+        if not used_byok and not quota:
+            cache_key = f"{parsed_ioc.normalized}:{parsed_ioc.type}"
+            cached = _cache_get(cache_key)
+            if cached is not None:
+                logger.debug("orchestrator.cache.hit", extra={"ioc": parsed_ioc.normalized})
+                return cached
+
         # Concurrent queries to all selected providers
         tasks = [
             self.clients[provider_name].query(parsed_ioc)
@@ -125,9 +126,7 @@ class InvestigationOrchestrator:
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         observations = []
-        for provider_name, result in zip(
-            [p for p in provider_names if p in self.clients], results
-        ):
+        for provider_name, result in zip([p for p in provider_names if p in self.clients], results):
             if isinstance(result, Exception):
                 logger.warning(
                     "orchestrator.provider.error",
@@ -148,7 +147,8 @@ class InvestigationOrchestrator:
             used_byok=used_byok,
             quota=quota or {},
         )
-        _cache_put(cache_key, response)
+        if not used_byok and not quota:
+            _cache_put(cache_key, response)
         return response
 
     def _select_providers(self, ioc_type: IocType | str) -> list[str]:
@@ -506,9 +506,6 @@ _ATTACK_MAPPINGS: dict[IocType, list[tuple[str, str, str]]] = {
         ),
     ],
 }
-
-
-from functools import lru_cache
 
 
 @lru_cache

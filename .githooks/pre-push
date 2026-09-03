@@ -43,8 +43,9 @@ fi
 echo "==> pre-push: API lint + format + tests (python: $PYTHON_CMD)"
 (cd apps/api && $PYTHON_CMD -m ruff check app tests && $PYTHON_CMD -m ruff format --check app tests && $PYTHON_CMD -m pytest -q)
 
-echo "==> pre-push: Web lint + build"
+echo "==> pre-push: Web lint + tests + build"
 npm run lint
+npm run test:web
 npm run build:web
 
 echo "==> pre-push: all checks passed"

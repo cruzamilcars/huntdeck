@@ -10,7 +10,7 @@ for threat intelligence:
 
 > **Paste an IOC — IP, domain, URL, hash, email, phone or social handle — and
 > get one normalized tactical report in seconds:** risk score, reputation from
-> **9 real threat-intel sources**, MITRE ATT&CK / NIST / ISO mappings,
+> **12 real threat-intel sources**, MITRE ATT&CK / NIST / ISO mappings,
 > analyst playbooks, relationship graph and PDF/CSV export.
 
 ![HuntDeck investigation console](docs/huntdeck-investigation.png)
@@ -79,7 +79,7 @@ graph, community reports and MITRE/NIST/ISO mappings, with PDF/CSV export.
 > `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` are both set, the API switches to
 > the **Supabase store** (PostgREST with the service-role key) and reserves
 > quota atomically via the `reserve_daily_usage` RPC. Apply
-> `supabase/migrations/001..004` against a Supabase project to activate it.
+> `supabase/migrations/001..009` against a Supabase project to activate it.
 >
 > **Service API keys** (SIEM/CI integration without Supabase) are managed via
 > CLI and validated as `X-API-Key` or Bearer:
@@ -178,7 +178,7 @@ frontend never sees them.
 ## Project layout
 
 ```text
-osint-mcp-hub/
+huntdeck/
   apps/
     web/                       # Next.js App Router frontend
       src/app/(auth)/          # login / register
@@ -283,4 +283,4 @@ operational notes (Vault usage, RLS, rate limits, TLS).
 
 ## License
 
-[MIT](LICENSE) © OSINT MCP Hub contributors
+[MIT](LICENSE) © HuntDeck contributors

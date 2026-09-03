@@ -3,7 +3,7 @@
 ## Title
 
 ```
-Show HN: HuntDeck – Paste an IOC, get one tactical report from 9 threat-intel sources
+Show HN: HuntDeck – Paste an IOC, get one tactical report from 12 threat-intel sources
 ```
 
 ## Post (first comment)
@@ -24,9 +24,9 @@ Technical decisions I'd love feedback on:
 
 1. Provider layer is an adapter protocol (MCP-style clients). Each provider
    normalizes into one Pydantic contract, so the orchestrator never knows
-   what VirusTotal vs Shodan look like. Adding a source = one file. Nine
-   real adapters today; three run without any API key (RDAP, urlscan
-   anonymous search, social-presence checks against GitHub/Reddit/Telegram).
+    what VirusTotal vs Shodan look like. Adding a source = one file. Twelve
+    real adapters today; three run without any API key (RDAP, urlscan
+    anonymous search, social-presence checks against GitHub/Reddit/Telegram).
 
 2. Risk scoring is deliberately boring: max score across sources with
    severity bands. No magic ML — analysts distrust black-box verdicts, so

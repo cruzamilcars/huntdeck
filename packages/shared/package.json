@@ -1,0 +1,7 @@
+{
+  "name": "@huntdeck/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Canonical HuntDeck tactical-report contract shared by the Next.js frontend.",
+  "types": "./src/contract.ts"
+}

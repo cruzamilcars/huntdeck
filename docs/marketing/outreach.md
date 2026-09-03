@@ -33,7 +33,7 @@ Happy to adjust wording to match the list's style.
 ## Add HuntDeck under "Related Tools"
 
 Adding [HuntDeck](https://github.com/cruzamilcars/huntdeck): an open source
-analyst console that orchestrates nine threat-intel providers behind a single
+analyst console that orchestrates twelve threat-intel providers behind a single
 adapter protocol and normalizes output into one tactical JSON contract,
 including MITRE ATT&CK technique mappings per indicator type. Useful as a
 lightweight desktop-grade alternative to stitching together enrichment
@@ -43,11 +43,11 @@ scripts; BYOK, local-first, MIT.
 ## 3. Newsletter pitch (3 líneas — TLDR Info Security, Week in OSINT, Console.dev)
 
 ```
-Subject: HuntDeck — paste an IOC, get 9-source enrichment + MITRE mapping in one report
+Subject: HuntDeck — paste an IOC, get 12-source enrichment + MITRE mapping in one report
 
 1) HuntDeck is an open source IOC investigation console: paste any indicator
    (IP/domain/URL/hash/email/phone/social handle) and get risk score, evidence
-   from 9 threat-intel sources, relationship graph and framework mappings in a
+   from 12 threat-intel sources, relationship graph and framework mappings in a
    single local dashboard.
 2) It runs local-first (FastAPI + Next.js, SQLite), works without accounts for
    three sources out of the box, and every verdict stays traceable to raw

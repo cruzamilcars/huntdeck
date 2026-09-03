@@ -25,11 +25,15 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@huntdeck/shared": [
+        "../../packages/shared/src/contract"
       ]
     }
   },
   "include": [
     "next-env.d.ts",
+    "vitest.config.mts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",

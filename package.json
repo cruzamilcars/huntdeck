@@ -1,5 +1,5 @@
 {
-  "name": "osint-mcp-hub",
+  "name": "huntdeck",
   "private": true,
   "packageManager": "npm@11.6.2",
   "workspaces": [
@@ -16,6 +16,7 @@
     "dev:web": "npm --workspace apps/web run dev",
     "dev:api": "cd apps/api && uvicorn app.main:app --reload",
     "lint": "npm --workspace apps/web run lint",
+    "test:web": "npm --workspace apps/web run test",
     "build:web": "npm --workspace apps/web run build",
     "test:api": "cd apps/api && python -m pytest"
   }

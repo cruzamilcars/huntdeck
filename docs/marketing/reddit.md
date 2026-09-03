@@ -29,9 +29,9 @@ normalized report back.
 
 What it does:
 
-- Queries 9 sources in one request (VirusTotal, Shodan, AbuseIPDB, RDAP,
-  urlscan.io, HaveIBeenPwned, OpenCNAM, AlienVault OTX, plus GitHub/
-  Reddit/Telegram presence for handles)
+- Queries 12 sources in one request (VirusTotal, Shodan, AbuseIPDB, RDAP,
+  urlscan.io, HaveIBeenPwned, OpenCNAM, AlienVault OTX, GreyNoise, URLhaus,
+  MISP, plus GitHub/Reddit/Telegram presence for handles)
 - Returns risk score + per-source evidence, relationship graph
 - Maps findings to MITRE techniques (with the reason), NIST CSF and ISO
   controls tiered by severity

@@ -33,12 +33,12 @@ flowchart LR
     RT -->|quota reserve| ST
 ```
 
-Diez adapters reales detras del mismo protocolo; los key-gated caen a mocks
+Twelve adapters reales detras del mismo protocolo; los key-gated caen a mocks
 deterministas hasta configurar su `*_API_KEY`. `GET /api/v1/system/providers`
 reporta el estado real/mock de cada uno.
 
 ```text
-osint-mcp-hub/
+huntdeck/
   apps/
     web/                         # Next.js App Router
       src/
@@ -67,7 +67,7 @@ osint-mcp-hub/
         schemas/                  # Pydantic DTOs
         services/                 # Orquestacion, playbooks, providers registry
       scripts/
-        verify-integrations.py    # Probe en vivo de las 9 integraciones
+        verify-integrations.py    # Probe en vivo de las 12 integraciones
       tests/
         unit/
         integration/
@@ -117,11 +117,17 @@ El backend devuelve un JSON consolidado con estas secciones:
     { "title": "...", "source": "...", "reference": "...", "steps": [] }
   ],
   "sources": [],
-  "used_byok": false
+  "used_byok": false,
+  "quota": { "reason": "platform_quota" }
 }
 ```
 
-## Proveedores MCP (9 adapters reales)
+> El contrato canonico vive en `packages/shared/src/contract.ts`
+> (`@huntdeck/shared`); el frontend lo re-exporta desde
+> `apps/web/src/lib/api/types.ts`. Si el backend agrega un campo,
+> actualizar ambos lados en el mismo commit.
+
+## Proveedores MCP (12 adapters reales)
 
 | Provider | IOC cubiertos | Key |
 | --- | --- | --- |
@@ -155,4 +161,18 @@ Ventana deslizante por identidad: trafico anonimo por IP
 (`RATE_LIMIT_PER_MINUTE`, default 60); credenciales de servicio `X-API-Key`
 por huella de la clave (`SERVICE_RATE_LIMIT_PER_MINUTE`, default 300), para
 que SIEM/CI no compita con navegadores. `/health` queda exento.
+
+## Deuda conocida: cache y rate limiting son por proceso
+
+El `InvestigationOrchestrator` cachea respuestas 5 minutos en un dict en
+memoria (`_cache`, max 256 entradas, sin cachear BYOK ni rechecks con
+`quota` explicita) y el rate limiting tambien vive en el proceso. Con un
+solo worker de uvicorn (el default del MVP) es correcto: la cuota se aplica
+de forma durable en SQLite/Supabase via RPC atomico, asi que el limite
+freemium nunca se puede evadir — como maximo un IOC se investiga dos veces
+en workers distintos.
+
+Al escalar a `--workers > 1` o varias replicas, migrar a un cache
+compartido (Redis: `SETEX ioc:<normalized> 300 <json>` + rate limit con
+`INCR` + ventana deslizante) antes de subir replicas.
 

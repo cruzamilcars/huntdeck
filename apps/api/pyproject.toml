@@ -6,9 +6,9 @@ build-backend = "setuptools.build_meta"
 include = ["app*"]
 
 [project]
-name = "osint-mcp-hub-api"
+name = "huntdeck-api"
 version = "0.1.0"
-description = "FastAPI backend for the OSINT MCP Hub MVP."
+description = "FastAPI backend for the HuntDeck MVP."
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115.0",

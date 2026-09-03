@@ -19,7 +19,13 @@ from app.services.playbooks import playbook_for
 
 logger = logging.getLogger(__name__)
 
-# Simple in-memory cache for investigation results
+# Simple in-memory cache for investigation results.
+#
+# KNOWN LIMITATION (single-process only): this dict lives in the uvicorn
+# worker process, so cache hits are NOT shared across `--workers > 1` or
+# multiple replicas. Rate limiting has the same property. Both are correct
+# for the MVP (one worker, quota enforced durably in SQLite/Supabase), but
+# scaling out requires a shared cache (Redis) — see docs/architecture.md.
 _CACHE_TTL_SECONDS = 5 * 60
 _CACHE_MAX_ENTRIES = 256
 _cache: dict[str, tuple[float, InvestigationResponse]] = {}

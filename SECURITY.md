@@ -2,7 +2,7 @@
 
 ## Scope
 
-OSINT MCP Hub is an investigation platform for **authorized security operations**:
+HuntDeck is an investigation platform for **authorized security operations**:
 threat intelligence analysts, SOC teams, red/blue teams and researchers. Only use
 it against infrastructure and data you own or are explicitly authorized to analyze.
 

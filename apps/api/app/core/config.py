@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "OSINT MCP Hub API"
+    app_name: str = "HuntDeck API"
     daily_free_quota: int = Field(default=10, description="Daily free quota (default 10)")
     rate_limit_per_minute: int = 60
     service_rate_limit_per_minute: int = Field(

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
-  title: "OSINT MCP Hub",
+  title: "HuntDeck",
   description: "Cloud-native IOC investigation hub with MCP orchestration.",
 };
 

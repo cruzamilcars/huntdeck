@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping with OSINT MCP Hub. The project is a community MVP: a
+Thanks for helping with HuntDeck. The project is a community MVP: a
 Next.js frontend, a FastAPI orchestrator and a Supabase data layer, all wired
 through MCP clients.
 

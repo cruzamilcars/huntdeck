@@ -45,4 +45,4 @@ docker_task:
     privileged: true
   only_if: $CIRRUS_BRANCH == 'main'
   api_image_build_script:
-    - docker build -f infra/docker/Dockerfile.api -t osint-mcp-hub-api .
+    - docker build -f infra/docker/Dockerfile.api -t huntdeck-api .

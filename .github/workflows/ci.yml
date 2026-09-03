@@ -48,8 +48,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build API image
-        run: docker build -f infra/docker/Dockerfile.api -t osint-mcp-hub-api .
+        run: docker build -f infra/docker/Dockerfile.api -t huntdeck-api .
       - name: Build web image
-        run: docker build -f infra/docker/Dockerfile.web -t osint-mcp-hub-web .
+        run: docker build -f infra/docker/Dockerfile.web -t huntdeck-web .
       - name: Compose config check
         run: docker compose -f infra/docker/docker-compose.yml config -q

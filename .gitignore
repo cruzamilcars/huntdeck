@@ -29,6 +29,10 @@ exports/
 # local durable store (SQLite)
 data/
 
+# playwright
+test-results/
+playwright-report/
+
 # local tooling
 .DS_Store
 Thumbs.db

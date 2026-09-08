@@ -2,7 +2,7 @@
 
 import { AlertTriangle, FileText, History, Loader2, Search, User } from "lucide-react";
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 
 import { ExportControls } from "@/components/export/export-controls";
 import { ResultsGrid } from "@/components/results/results-grid";
@@ -25,14 +25,14 @@ export function InvestigationConsole() {
   const [history, setHistory] = useState<InvestigationHistoryRow[]>([]);
   const [historyError, setHistoryError] = useState<string | null>(null);
 
-  async function loadHistory() {
+  const loadHistory = useCallback(async () => {
     try {
       setHistory(await fetchInvestigationHistory(session, 20));
       setHistoryError(null);
     } catch (err) {
       setHistoryError(err instanceof Error ? err.message : "Failed to load history.");
     }
-  }
+  }, [session]);
 
   useEffect(() => {
     getSessionContext().then(setSession);
@@ -58,24 +58,35 @@ export function InvestigationConsole() {
     }
   }, [session]);
 
-  async function runInvestigation(iocValue: string) {
-    setLoading(true);
-    setError(null);
-    try {
-      setResult(await investigateIoc(iocValue, session));
-      loadHistory();
-    } catch (err) {
-      setResult(null);
-      setError(err instanceof Error ? err.message : "Investigation failed.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const runInvestigation = useCallback(
+    async (iocValue: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        setResult(await investigateIoc(iocValue, session));
+        void loadHistory();
+      } catch (err) {
+        setResult(null);
+        setError(err instanceof Error ? err.message : "Investigation failed.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [session, loadHistory]
+  );
 
-  function handlePivot(iocValue: string) {
-    setIoc(iocValue);
-    runInvestigation(iocValue);
-  }
+  const handlePivot = useCallback(
+    (iocValue: string) => {
+      setIoc(iocValue);
+      void runInvestigation(iocValue);
+    },
+    [runInvestigation]
+  );
+
+  const handleRecheckResult = useCallback(
+    (recheckResult: InvestigationResponse) => setResult(recheckResult),
+    []
+  );
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -176,7 +187,7 @@ export function InvestigationConsole() {
       ) : null}
 
       <section className="mb-4">
-        <WatchlistPanel onRecheckResult={(recheckResult) => setResult(recheckResult)} />
+        <WatchlistPanel onRecheckResult={handleRecheckResult} />
       </section>
 
       <section className="brutal-panel mb-4 p-4">

@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, memo, useEffect, useState } from "react";
 
 import {
   addToWatchlist,
@@ -13,7 +13,7 @@ import {
 import { getSessionContext, type SessionContext } from "@/lib/api/session";
 import type { InvestigationResponse } from "@/lib/api/types";
 
-export function WatchlistPanel({
+export const WatchlistPanel = memo(function WatchlistPanel({
   onRecheckResult,
 }: {
   onRecheckResult: (result: InvestigationResponse) => void;
@@ -178,4 +178,4 @@ export function WatchlistPanel({
       )}
     </section>
   );
-}
+});

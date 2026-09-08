@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     api_cors_origins: list[AnyHttpUrl] = Field(
         default=["http://localhost:3000", "http://127.0.0.1:3000"]
     )
+    mcp_mock_all: bool = Field(
+        default=False,
+        description="Force every provider to the deterministic mock client (CI/E2E/dev).",
+    )
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

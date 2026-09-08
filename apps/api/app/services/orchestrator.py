@@ -63,6 +63,24 @@ def _default_clients() -> dict[str, McpClient]:
     from app.agents.mcp.virustotal import VirusTotalMcpClient
 
     settings = get_settings()
+    if settings.mcp_mock_all:
+        return {
+            provider_name: MockMcpClient(provider_name)
+            for provider_name in (
+                "mcp-virustotal",
+                "mcp-shodan",
+                "mcp-abuseipdb",
+                "mcp-hibp",
+                "mcp-opencnam",
+                "mcp-otx",
+                "mcp-greynoise",
+                "mcp-misp",
+                "mcp-urlhaus",
+                "mcp-rdap",
+                "mcp-urlscan",
+                "mcp-social",
+            )
+        }
     clients: dict[str, McpClient] = {
         "mcp-virustotal": MockMcpClient("mcp-virustotal"),
         "mcp-shodan": MockMcpClient("mcp-shodan"),

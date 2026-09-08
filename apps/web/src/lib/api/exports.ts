@@ -1,5 +1,3 @@
-import jsPDF from "jspdf";
-
 import type { InvestigationResponse } from "@/lib/api/types";
 
 export function exportInvestigationCsv(result: InvestigationResponse): void {
@@ -22,11 +20,14 @@ export function exportInvestigationCsv(result: InvestigationResponse): void {
   downloadBlob(csv, `ioc-${result.ioc.type}.csv`, "text/csv;charset=utf-8");
 }
 
-export function exportInvestigationPdf(result: InvestigationResponse): void {
+export async function exportInvestigationPdf(result: InvestigationResponse): Promise<void> {
+  // jspdf pulls in a large dependency chain (~350KB); load it only when the
+  // user actually requests a PDF export.
+  const { default: jsPDF } = await import("jspdf");
   const doc = new jsPDF();
   doc.setFont("courier", "bold");
   doc.setFontSize(14);
-  doc.text("OSINT MCP HUB / IOC REPORT", 14, 18);
+  doc.text("HUNTDECK / IOC REPORT", 14, 18);
 
   doc.setFont("courier", "normal");
   doc.setFontSize(10);

@@ -39,6 +39,20 @@ web_task:
   test_script: npm run test:web
   build_script: npm run build:web
 
+e2e_task:
+  name: E2E (Playwright)
+  environment:
+    CACHEDIR: /tmp/cirrus-cache
+  node_modules_cache:
+    folder: node_modules
+    fingerprint_script: cat package-lock.json
+    populate_script: npm ci
+  install_script:
+    - apt-get update && apt-get install -y --no-install-recommends python3 python3-pip
+    - pip install --break-system-packages --quiet -e "apps/api[dev]"
+    - npx playwright install --with-deps chromium
+  test_script: npm run test:e2e
+
 docker_task:
   name: Docker images
   container:

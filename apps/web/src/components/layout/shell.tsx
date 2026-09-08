@@ -7,7 +7,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <header className="mb-4 grid grid-cols-1 border border-[var(--line)] bg-black md:grid-cols-[1fr_auto]">
         <div className="border-b border-[var(--line)] p-3 md:border-b-0 md:border-r">
           <p className="text-xs text-[var(--muted)]">CLOUD OSINT / MCP ORCHESTRATION</p>
-          <h1 className="mt-1 text-xl font-black uppercase md:text-3xl">OSINT MCP HUB</h1>
+          <h1 className="mt-1 text-xl font-black uppercase md:text-3xl">HUNTDECK</h1>
         </div>
         <div className="grid grid-cols-5 divide-x divide-[var(--muted-line)] text-center text-xs uppercase">
           <div className="p-3">

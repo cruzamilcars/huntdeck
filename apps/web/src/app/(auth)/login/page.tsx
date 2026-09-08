@@ -41,7 +41,13 @@ export default function LoginPage() {
         setError(signInError.message);
         return;
       }
-      router.push("/investigate");
+      const requested =
+        typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("next");
+      const destination =
+        requested && requested.startsWith("/") && !requested.startsWith("//")
+          ? requested
+          : "/investigate";
+      router.push(destination);
       router.refresh();
     } finally {
       setLoading(false);

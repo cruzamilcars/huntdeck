@@ -1,8 +1,10 @@
+import { memo } from "react";
+
 import type { InvestigationResponse } from "@/lib/api/types";
 
 import { ModulePanel } from "./module-panel";
 
-export function ResultsGrid({
+export const ResultsGrid = memo(function ResultsGrid({
   result,
   onPivot,
 }: {
@@ -163,7 +165,7 @@ export function ResultsGrid({
       </ModulePanel>
     </div>
   );
-}
+});
 
 function MappingList({ title, rows }: { title: string; rows: Array<Record<string, string>> }) {
   return (

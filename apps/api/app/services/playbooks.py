@@ -43,6 +43,12 @@ def _by_ioc_type(ioc_type: IocType) -> list[dict[str, Any]]:
             return [_phone_playbook()]
         case IocType.SOCIAL_HANDLE:
             return [_social_playbook()]
+        case IocType.ETHEREUM_ADDRESS | IocType.BITCOIN_ADDRESS | IocType.SOLANA_ADDRESS:
+            return [_crypto_wallet_playbook()]
+        case IocType.TX_HASH:
+            return [_transaction_playbook()]
+        case IocType.ENS_NAME:
+            return [_ens_playbook()]
         case _:
             return [_enrichment_playbook_entry()]
 
@@ -319,6 +325,108 @@ def _social_playbook() -> dict[str, Any]:
     }
 
 
+def _crypto_wallet_playbook() -> dict[str, Any]:
+    return {
+        "title": "Crypto wallet fraud triage",
+        "source": "Anthropic Cybersecurity Skills",
+        "reference": _skill_url("building-threat-actor-profile-from-osint"),
+        "summary": (
+            "Assess whether the wallet is attacker infrastructure: on-chain scam flags, "
+            "liquidity and token behaviour before money movement."
+        ),
+        "steps": [
+            _step(
+                "Check explorer scam signals",
+                "Read is_scam / reputation flags and GoPlus security on the chain explorer; a "
+                "flagged address should be correlated before blocking on it.",
+                "hub adapters",
+            ),
+            _step(
+                "Inspect token liquidity",
+                "Thin liquidity, extreme 24h moves or micro-valuation point to honeypot or "
+                "rug-pull behaviour for ERC-20 holdings.",
+                "Dexscreener",
+            ),
+            _step(
+                "Trace fund flows",
+                "Walk sent_from/received_by relationships into a new hub investigation of the "
+                "counterparty wallets; look for exit to exchanges or mixers.",
+                "hub pivot",
+            ),
+            _step(
+                "Notify exchange & chain-analysis contact",
+                "If confirmed fraud: report the address to the relevant CEX compliance channel "
+                "and a chain-analysis provider for contaminating taint labels.",
+                "compliance",
+            ),
+        ],
+    }
+
+
+def _transaction_playbook() -> dict[str, Any]:
+    return {
+        "title": "On-chain transaction tracing",
+        "source": "Anthropic Cybersecurity Skills",
+        "reference": _skill_url("automating-ioc-enrichment"),
+        "summary": (
+            "Correlate the transaction with the active campaign: confirm value flow, method "
+            "and counterparties before adding addresses to the watchlist."
+        ),
+        "steps": [
+            _step(
+                "Confirm the transaction on-chain",
+                "Verify status, block and method across two independent explorers (Etherscan + "
+                "Blockscout) to rule out spoofed or reorged data.",
+                "hub adapters",
+            ),
+            _step(
+                "Extract counterparties",
+                "Follow sent_from/received_by into address investigations; a single campaign "
+                "often fans out to many destination wallets.",
+                "hub pivot",
+            ),
+            _step(
+                "Flag the flow pattern",
+                "Detect immediate onward transfers or chained approvals — classic drainer "
+                "behaviour after a phishing approval.",
+                "chain analysis",
+            ),
+        ],
+    }
+
+
+def _ens_playbook() -> dict[str, Any]:
+    return {
+        "title": "ENS name attribution",
+        "source": "Anthropic Cybersecurity Skills",
+        "reference": _skill_url("building-threat-actor-profile-from-osint"),
+        "summary": (
+            "Resolve the ENS name to its controlling address, then investigate the wallet as "
+            "any other on-chain IOC."
+        ),
+        "steps": [
+            _step(
+                "Resolve the controlling address",
+                "Look up the ENS name against a registry-aware API and note the resolved "
+                "address, plus any records the controller exposed.",
+                "hub adapters",
+            ),
+            _step(
+                "Investigate the wallet",
+                "Pivot to the resolved address with a full on-chain investigation (scam flags, "
+                "liquidity, activity).",
+                "hub pivot",
+            ),
+            _step(
+                "Watch for lookalikes",
+                "Attackers register visually similar ENS names; compare squeezes/hyphens and "
+                "expiration dates with the legitimate name.",
+                "registry",
+            ),
+        ],
+    }
+
+
 def _enrichment_playbook_entry() -> dict[str, Any]:
     return {
         "title": "Cross-source enrichment & correlation",
@@ -359,6 +467,11 @@ def _escalation_playbook(ioc_type: IocType) -> dict[str, Any]:
         IocType.EMAIL: "mailbox",
         IocType.PHONE: "number",
         IocType.SOCIAL_HANDLE: "account",
+        IocType.ETHEREUM_ADDRESS: "wallet address",
+        IocType.BITCOIN_ADDRESS: "wallet address",
+        IocType.SOLANA_ADDRESS: "wallet address",
+        IocType.TX_HASH: "transaction",
+        IocType.ENS_NAME: "ENS name",
     }.get(ioc_type, "IOC")
     return {
         "title": "High-risk escalation",

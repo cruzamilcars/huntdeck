@@ -24,10 +24,24 @@ KEY_ENV_VARS = {
     "mcp-greynoise": "GREYNOISE_API_KEY",
     "mcp-misp": "MISP_URL + MISP_API_KEY",
     "mcp-urlhaus": "URLHAUS_API_KEY",
+    "mcp-intelx": "INTELX_API_KEY",
+    "mcp-hunterio": "HUNTERIO_API_KEY",
+    "mcp-threatfox": "THREATFOX_API_KEY",
+    "mcp-etherscan": "ETHERSCAN_API_KEY",
 }
 
 # Adapters that operate fully (or with graceful degradation) without a key.
-ALWAYS_LIVE = {"mcp-rdap", "mcp-urlscan", "mcp-social"}
+ALWAYS_LIVE = {
+    "mcp-rdap",
+    "mcp-urlscan",
+    "mcp-social",
+    "mcp-crtsh",
+    "mcp-blockscout",
+    "mcp-mempoolspace",
+    "mcp-goplus",
+    "mcp-dexscreener",
+    "mcp-solana",
+}
 
 
 @router.get("/providers", response_model=list[dict])

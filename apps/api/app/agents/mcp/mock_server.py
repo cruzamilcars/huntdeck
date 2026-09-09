@@ -39,12 +39,18 @@ class MockMcpClient:
             return "high"
         if ioc.type in {IocType.MD5, IocType.SHA1, IocType.SHA256}:
             return "medium"
+        if ioc.type in {IocType.TX_HASH, IocType.ENS_NAME}:
+            return "low"
         return "low"
 
     def _score(self, ioc: ParsedIoc, hint: str) -> int:
         base = {"low": 18, "medium": 48, "high": 82}[hint]
         provider_bias = sum(ord(char) for char in self.name) % 9
-        type_bias = 10 if ioc.type in {IocType.URL, IocType.SHA256} else 0
+        type_bias = 0
+        if ioc.type in {IocType.URL, IocType.SHA256}:
+            type_bias = 10
+        elif ioc.type in {IocType.ETHEREUM_ADDRESS, IocType.SOLANA_ADDRESS}:
+            type_bias = 6
         return min(100, base + provider_bias + type_bias)
 
     def _verdict(self, score: int) -> str:
@@ -60,6 +66,16 @@ class MockMcpClient:
             tags.append("external-facing")
         if ioc.type in {IocType.MD5, IocType.SHA1, IocType.SHA256}:
             tags.append("file-artifact")
+        if ioc.type in {
+            IocType.ETHEREUM_ADDRESS,
+            IocType.BITCOIN_ADDRESS,
+            IocType.SOLANA_ADDRESS,
+        }:
+            tags.append("on-chain-wallet")
+        if ioc.type == IocType.TX_HASH:
+            tags.append("on-chain-transaction")
+        if ioc.type == IocType.ENS_NAME:
+            tags.append("ens-name")
         return tags
 
     def _geolocation(self, ioc: ParsedIoc) -> dict[str, str] | None:
@@ -82,4 +98,16 @@ class MockMcpClient:
             return [{"kind": "hosts_path", "target": ioc.normalized}]
         if ioc.type in {IocType.MD5, IocType.SHA1, IocType.SHA256}:
             return [{"kind": "seen_in_campaign", "target": "SIM-CAMPAIGN-001"}]
+        if ioc.type == IocType.ETHEREUM_ADDRESS:
+            return [
+                {"kind": "deployed_by", "target": "0x000000000000000000000000000000000000dEaD"},
+                {"kind": "traded_on", "target": "uniswap-v2"},
+            ]
+        if ioc.type == IocType.TX_HASH:
+            return [
+                {"kind": "sent_from", "target": "0x000000000000000000000000000000000000dEaD"},
+                {"kind": "received_by", "target": "0x000000000000000000000000000000000000BEEF"},
+            ]
+        if ioc.type == IocType.ENS_NAME:
+            return [{"kind": "resolves_to", "target": "0x000000000000000000000000000000000000dEaD"}]
         return []

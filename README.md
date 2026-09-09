@@ -158,6 +158,11 @@ Copy `.env.example` → split the variables into the files each app reads:
 | `GREYNOISE_API_KEY` | Optional. Real GreyNoise Community adapter (IPv4 scanner classification: benign RIOT services vs malicious internet noise). Falls back to mock when unset. |
 | `MISP_URL` / `MISP_API_KEY` / `MISP_VERIFY_SSL` | Optional. Your MISP instance for org-internal indicator lookups (all IP/domain/URL/hash/email routes). Falls back to mock when unset. |
 | `URLHAUS_API_KEY` | Optional. Real URLhaus adapter (URL/domain/hash malware listings from abuse.ch). Falls back to mock when unset. |
+| `INTELX_API_KEY` | Optional. Real IntelX adapter (email/phone/domain breached-data exposure). Falls back to mock when unset. |
+| `HUNTERIO_API_KEY` | Optional. Real Hunter.io adapter (email deliverability/risk scoring). Falls back to mock when unset. |
+| `THREATFOX_API_KEY` | Optional. Real ThreatFox adapter (domain/URL/hash malware families from abuse.ch; requires a key). Falls back to mock when unset. |
+| `ETHERSCAN_API_KEY` | Optional. Real Etherscan adapter (ETH wallet balance + transaction details). Falls back to mock when unset. |
+| `REDIS_URL` | Optional. Enables a shared Redis investigation cache across API workers/replicas. Falls back to in-memory cache when unset. |
 | `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | Optional. Enables the Supabase store (PostgREST persistence + atomic quota RPC). Falls back to local SQLite when unset. |
 | `DATABASE_PATH` | Local durable store path (default `data/huntdeck.db`). |
 

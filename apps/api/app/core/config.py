@@ -35,6 +35,14 @@ class Settings(BaseSettings):
     misp_api_key: str | None = None
     misp_verify_ssl: bool = True
     urlhaus_api_key: str | None = None
+    intelx_api_key: str | None = None
+    hunterio_api_key: str | None = None
+    threatfox_api_key: str | None = None
+    etherscan_api_key: str | None = None
+    redis_url: str | None = Field(
+        default=None,
+        description="Optional Redis URL; enables a shared investigation cache across workers.",
+    )
     supabase_url: str | None = None
     supabase_service_role_key: str | None = None
     database_path: str = Field(

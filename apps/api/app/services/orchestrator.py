@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from functools import lru_cache
-from time import time
 
 from app.agents.mcp.client import McpClient
 from app.agents.mcp.mock_server import MockMcpClient
@@ -15,72 +14,79 @@ from app.schemas.investigation import (
     RiskSummary,
     TacticalMappings,
 )
+from app.services.cache import get_cache_backend
 from app.services.playbooks import playbook_for
 
 logger = logging.getLogger(__name__)
 
-# Simple in-memory cache for investigation results.
+_CACHE_TTL_SECONDS = 5 * 60
+_CACHE_MAX_ENTRIES = 256
+
+_MOCK_NAMES = (
+    "mcp-virustotal",
+    "mcp-shodan",
+    "mcp-abuseipdb",
+    "mcp-hibp",
+    "mcp-opencnam",
+    "mcp-otx",
+    "mcp-greynoise",
+    "mcp-misp",
+    "mcp-urlhaus",
+    "mcp-rdap",
+    "mcp-urlscan",
+    "mcp-social",
+    "mcp-intelx",
+    "mcp-hunterio",
+    "mcp-crtsh",
+    "mcp-threatfox",
+    "mcp-blockscout",
+    "mcp-mempoolspace",
+    "mcp-goplus",
+    "mcp-dexscreener",
+    "mcp-solana",
+    "mcp-etherscan",
+)
+
+# Investigation result cache (see app/services/cache.py). Default backend is an
+# in-process dict; setting REDIS_URL swaps to a shared Redis cache so hits
+# survive across `--workers > 1` or multiple replicas.
 #
-# KNOWN LIMITATION (single-process only): this dict lives in the uvicorn
+# KNOWN LIMITATION (in-memory only): the dict backend lives in the uvicorn
 # worker process, so cache hits are NOT shared across `--workers > 1` or
 # multiple replicas. Rate limiting has the same property. Both are correct
 # for the MVP (one worker, quota enforced durably in SQLite/Supabase), but
 # scaling out requires a shared cache (Redis) — see docs/architecture.md.
 _CACHE_TTL_SECONDS = 5 * 60
 _CACHE_MAX_ENTRIES = 256
-_cache: dict[str, tuple[float, InvestigationResponse]] = {}
-
-
-def _cache_get(key: str) -> InvestigationResponse | None:
-    entry = _cache.get(key)
-    if entry is None:
-        return None
-    ts, value = entry
-    if time() - ts > _CACHE_TTL_SECONDS:
-        _cache.pop(key, None)
-        return None
-    return value
-
-
-def _cache_put(key: str, value: InvestigationResponse) -> None:
-    if len(_cache) >= _CACHE_MAX_ENTRIES:
-        _cache.pop(next(iter(_cache)), None)
-    _cache[key] = (time(), value)
 
 
 def _default_clients() -> dict[str, McpClient]:
     from app.agents.mcp.abuseipdb import AbuseIpdbMcpClient
+    from app.agents.mcp.blockscout import BlockscoutMcpClient
+    from app.agents.mcp.crtsh import CrtshMcpClient
+    from app.agents.mcp.dexscreener import DexscreenerMcpClient
+    from app.agents.mcp.etherscan import EtherscanMcpClient
+    from app.agents.mcp.goplus import GoplusMcpClient
     from app.agents.mcp.greynoise import GreynoiseMcpClient
     from app.agents.mcp.hibp import HibpMcpClient
+    from app.agents.mcp.hunterio import HunterioMcpClient
+    from app.agents.mcp.intelx import IntelxMcpClient
+    from app.agents.mcp.mempool import MempoolspaceMcpClient
     from app.agents.mcp.misp import MispMcpClient
     from app.agents.mcp.opencnam import OpenCnamMcpClient
     from app.agents.mcp.otx import OtxMcpClient
     from app.agents.mcp.rdap import RdapMcpClient
     from app.agents.mcp.shodan import ShodanMcpClient
     from app.agents.mcp.social import SocialPresenceMcpClient
+    from app.agents.mcp.solana import SolanaMcpClient
+    from app.agents.mcp.threatfox import ThreatfoxMcpClient
     from app.agents.mcp.urlhaus import UrlHausMcpClient
     from app.agents.mcp.urlscan import UrlScanMcpClient
     from app.agents.mcp.virustotal import VirusTotalMcpClient
 
     settings = get_settings()
     if settings.mcp_mock_all:
-        return {
-            provider_name: MockMcpClient(provider_name)
-            for provider_name in (
-                "mcp-virustotal",
-                "mcp-shodan",
-                "mcp-abuseipdb",
-                "mcp-hibp",
-                "mcp-opencnam",
-                "mcp-otx",
-                "mcp-greynoise",
-                "mcp-misp",
-                "mcp-urlhaus",
-                "mcp-rdap",
-                "mcp-urlscan",
-                "mcp-social",
-            )
-        }
+        return {provider_name: MockMcpClient(provider_name) for provider_name in _MOCK_NAMES}
     clients: dict[str, McpClient] = {
         "mcp-virustotal": MockMcpClient("mcp-virustotal"),
         "mcp-shodan": MockMcpClient("mcp-shodan"),
@@ -94,6 +100,16 @@ def _default_clients() -> dict[str, McpClient]:
         "mcp-rdap": RdapMcpClient(),
         "mcp-urlscan": UrlScanMcpClient(api_key=settings.urlscan_api_key),
         "mcp-social": SocialPresenceMcpClient(),
+        "mcp-intelx": MockMcpClient("mcp-intelx"),
+        "mcp-hunterio": MockMcpClient("mcp-hunterio"),
+        "mcp-crtsh": CrtshMcpClient(),
+        "mcp-threatfox": MockMcpClient("mcp-threatfox"),
+        "mcp-blockscout": BlockscoutMcpClient(),
+        "mcp-mempoolspace": MempoolspaceMcpClient(),
+        "mcp-goplus": GoplusMcpClient(),
+        "mcp-dexscreener": DexscreenerMcpClient(),
+        "mcp-solana": SolanaMcpClient(),
+        "mcp-etherscan": MockMcpClient("mcp-etherscan"),
     }
     if settings.virustotal_api_key:
         clients["mcp-virustotal"] = VirusTotalMcpClient(api_key=settings.virustotal_api_key)
@@ -117,6 +133,14 @@ def _default_clients() -> dict[str, McpClient]:
         )
     if settings.urlhaus_api_key:
         clients["mcp-urlhaus"] = UrlHausMcpClient(api_key=settings.urlhaus_api_key)
+    if settings.intelx_api_key:
+        clients["mcp-intelx"] = IntelxMcpClient(api_key=settings.intelx_api_key)
+    if settings.hunterio_api_key:
+        clients["mcp-hunterio"] = HunterioMcpClient(api_key=settings.hunterio_api_key)
+    if settings.threatfox_api_key:
+        clients["mcp-threatfox"] = ThreatfoxMcpClient(api_key=settings.threatfox_api_key)
+    if settings.etherscan_api_key:
+        clients["mcp-etherscan"] = EtherscanMcpClient(api_key=settings.etherscan_api_key)
     return clients
 
 
@@ -134,13 +158,20 @@ class InvestigationOrchestrator:
         parsed_ioc = parse_ioc(raw_ioc)
         provider_names = self._select_providers(parsed_ioc.type)
 
+        use_cache = not used_byok and not quota
+        backend = await get_cache_backend() if use_cache else None
         # Cache lookup with TTL (skip cache when BYOK used or when caller supplies quota)
-        if not used_byok and not quota:
+        if backend is not None:
             cache_key = f"{parsed_ioc.normalized}:{parsed_ioc.type}"
-            cached = _cache_get(cache_key)
+            cached = await backend.get(cache_key)
             if cached is not None:
                 logger.debug("orchestrator.cache.hit", extra={"ioc": parsed_ioc.normalized})
-                return cached
+                try:
+                    return InvestigationResponse.model_validate(cached)
+                except Exception:  # noqa: BLE001 - a corrupt cache entry is a miss
+                    logger.warning(
+                        "orchestrator.cache.corrupt", extra={"ioc": parsed_ioc.normalized}
+                    )
 
         # Concurrent queries to all selected providers
         tasks = [
@@ -171,8 +202,8 @@ class InvestigationOrchestrator:
             used_byok=used_byok,
             quota=quota or {},
         )
-        if not used_byok and not quota:
-            _cache_put(cache_key, response)
+        if backend is not None:
+            await backend.put(cache_key, response.model_dump(mode="json"))
         return response
 
     def _select_providers(self, ioc_type: IocType | str) -> list[str]:
@@ -206,17 +237,48 @@ class InvestigationOrchestrator:
                     "mcp-otx",
                     "mcp-misp",
                     "mcp-urlhaus",
+                    "mcp-crtsh",
+                    "mcp-threatfox",
+                    "mcp-intelx",
                 ]
             case IocType.URL:
-                return ["mcp-virustotal", "mcp-urlscan", "mcp-otx", "mcp-misp", "mcp-urlhaus"]
+                return [
+                    "mcp-virustotal",
+                    "mcp-urlscan",
+                    "mcp-otx",
+                    "mcp-misp",
+                    "mcp-urlhaus",
+                    "mcp-threatfox",
+                ]
             case IocType.MD5 | IocType.SHA1 | IocType.SHA256:
-                return ["mcp-virustotal", "mcp-otx", "mcp-misp", "mcp-urlhaus"]
+                return [
+                    "mcp-virustotal",
+                    "mcp-otx",
+                    "mcp-misp",
+                    "mcp-urlhaus",
+                    "mcp-threatfox",
+                ]
             case IocType.EMAIL:
-                return ["mcp-hibp", "mcp-misp"]
+                return ["mcp-hibp", "mcp-hunterio", "mcp-intelx", "mcp-misp"]
             case IocType.PHONE:
-                return ["mcp-opencnam"]
+                return ["mcp-intelx", "mcp-opencnam"]
             case IocType.SOCIAL_HANDLE:
                 return ["mcp-social"]
+            case IocType.ETHEREUM_ADDRESS:
+                return [
+                    "mcp-etherscan",
+                    "mcp-blockscout",
+                    "mcp-goplus",
+                    "mcp-dexscreener",
+                ]
+            case IocType.BITCOIN_ADDRESS:
+                return ["mcp-mempoolspace"]
+            case IocType.SOLANA_ADDRESS:
+                return ["mcp-solana"]
+            case IocType.TX_HASH:
+                return ["mcp-etherscan", "mcp-blockscout"]
+            case IocType.ENS_NAME:
+                return ["mcp-blockscout"]
             case IocType.UNKNOWN:
                 return []
 
@@ -520,6 +582,76 @@ _ATTACK_MAPPINGS: dict[IocType, list[tuple[str, str, str]]] = {
             "T1534",
             "Internal Spearphishing",
             "Impersonated accounts may enable internal phishing.",
+        ),
+    ],
+    IocType.ETHEREUM_ADDRESS: [
+        (
+            "T1566.002",
+            "Phishing: Spearphishing Link",
+            "Address may fund or receive approval-phishing / drainer campaigns.",
+        ),
+        (
+            "T1496",
+            "Resource Hijacking",
+            "Wallet may be a cryptocurrency-mining payout address.",
+        ),
+        (
+            "T1078",
+            "Valid Accounts",
+            "Stolen credentials frequently covert value through such addresses.",
+        ),
+    ],
+    IocType.BITCOIN_ADDRESS: [
+        (
+            "T1496",
+            "Resource Hijacking",
+            "Wallet may be a cryptocurrency-mining payout address.",
+        ),
+        (
+            "T1566.002",
+            "Phishing: Spearphishing Link",
+            "Address may be tied to extortion or phishing payment demands.",
+        ),
+    ],
+    IocType.SOLANA_ADDRESS: [
+        (
+            "T1566.002",
+            "Phishing: Spearphishing Link",
+            "Address may fund drainer or fake-airdrop campaigns.",
+        ),
+        (
+            "T1496",
+            "Resource Hijacking",
+            "Wallet may receive illicit mining or staking payouts.",
+        ),
+    ],
+    IocType.TX_HASH: [
+        (
+            "T1071.001",
+            "Application Layer Protocol",
+            "Transactions are the value-transfer channel for the campaign.",
+        ),
+        (
+            "T1048.003",
+            "Exfiltration Over Alternative Protocol",
+            "Funds taint flows through the transaction graph.",
+        ),
+        (
+            "T1496",
+            "Resource Hijacking",
+            "On-chain payouts can be traced across the transaction chain.",
+        ),
+    ],
+    IocType.ENS_NAME: [
+        (
+            "T1583.001",
+            "Acquire Infrastructure: Domains",
+            "ENS name may front an attacker-controlled address.",
+        ),
+        (
+            "T1566.002",
+            "Phishing: Spearphishing Link",
+            "Fraudulent ENS names are used in phishing and wallet drains.",
         ),
     ],
     IocType.UNKNOWN: [

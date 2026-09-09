@@ -127,7 +127,7 @@ El backend devuelve un JSON consolidado con estas secciones:
 > `apps/web/src/lib/api/types.ts`. Si el backend agrega un campo,
 > actualizar ambos lados en el mismo commit.
 
-## Proveedores MCP (12 adapters reales)
+## Proveedores MCP (22 adapters reales)
 
 | Provider | IOC cubiertos | Key |
 | --- | --- | --- |
@@ -143,6 +143,21 @@ El backend devuelve un JSON consolidado con estas secciones:
 | `mcp-misp` | ipv4, ipv6, domain, url, hashes, email | tu instancia (`MISP_URL` + `MISP_API_KEY`) |
 | `mcp-urlhaus` | domain, url, hashes | `URLHAUS_API_KEY` |
 | `mcp-social` | social_handle | siempre activo (GitHub/Reddit/Telegram) |
+| `mcp-intelx` | email, phone, domain | `INTELX_API_KEY` |
+| `mcp-hunterio` | email | `HUNTERIO_API_KEY` |
+| `mcp-crtsh` | domain (subdominios via CT) | siempre activo (crt.sh; tolera rate-limit) |
+| `mcp-threatfox` | domain, url, hashes | `THREATFOX_API_KEY` (requerida) |
+| `mcp-blockscout` | ethereum_address, tx_hash, ens_name | siempre activo (eth.blockscout.com) |
+| `mcp-mempoolspace` | bitcoin_address | siempre activo (mempool.space) |
+| `mcp-goplus` | ethereum_address (token/wallet riesgo) | siempre activo (GoPlus) |
+| `mcp-dexscreener` | ethereum_address (liquidez/trading) | siempre activo (Dexscreener) |
+| `mcp-solana` | solana_address | siempre activo (RPC público) |
+| `mcp-etherscan` | ethereum_address, tx_hash | `ETHERSCAN_API_KEY` |
+
+Los IOCs web3 cubren wallets (ETH/BTC/SOL), transacciones (`tx_hash`, formato
+EVM `0x` + 64 hex) y nombres ENS (resueltos vía Blockscout). Los adapters
+on-chain keyless se marcan como "siempre activos" pero degradan cada fallo a
+una observación estructurada (nunca bloquean la investigación).
 
 Sin key configurada, los adapters key-gated caen a mocks deterministas;
 `GET /api/v1/system/providers` reporta el estado real/mock de cada uno y el

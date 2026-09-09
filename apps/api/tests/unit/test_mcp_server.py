@@ -33,6 +33,16 @@ def _mock_orchestrator() -> InvestigationOrchestrator:
             "mcp-rdap",
             "mcp-urlscan",
             "mcp-social",
+            "mcp-intelx",
+            "mcp-hunterio",
+            "mcp-crtsh",
+            "mcp-threatfox",
+            "mcp-blockscout",
+            "mcp-mempoolspace",
+            "mcp-goplus",
+            "mcp-dexscreener",
+            "mcp-solana",
+            "mcp-etherscan",
         )
     }
     return InvestigationOrchestrator(clients=clients)
@@ -157,3 +167,30 @@ def test_mcp_investigate_rejects_unknown_ioc() -> None:
         result = response.json()["result"]
         assert result.get("isError") is True
         assert "not a recognizable IOC" in result["content"][0]["text"]
+
+
+def test_mcp_investigate_web3_wallet_returns_chain_providers() -> None:
+    with _client() as client:
+        session_id = _init_session(client)
+        response = _post(
+            client,
+            session_id,
+            "tools/call",
+            {
+                "name": "investigate",
+                "arguments": {"ioc": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"},
+            },
+            6,
+        )
+        assert response.status_code == 200, response.text
+        content = response.json()["result"]["content"]
+        report = json.loads(content[0]["text"])
+        assert report["ioc"]["type"] == "ethereum_address"
+        assert report["ioc"]["normalized"] == "0xd8da6bf26964af9d7eed9e03e53415d37aa96045"
+        assert report["mcp_servers_queried"] == [
+            "mcp-etherscan",
+            "mcp-blockscout",
+            "mcp-goplus",
+            "mcp-dexscreener",
+        ]
+        assert report["playbooks"][0]["title"] == "Crypto wallet fraud triage"

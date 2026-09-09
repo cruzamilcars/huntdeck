@@ -31,6 +31,42 @@ from app.domain.ioc.types import IocType
         ("https://x.com/@handle", IocType.SOCIAL_HANDLE, "x.com/handle"),
         ("linkedin.com/in/ana-lopez", IocType.SOCIAL_HANDLE, "linkedin.com/in/ana-lopez"),
         ("t.me/malware_bot", IocType.SOCIAL_HANDLE, "t.me/malware_bot"),
+        (
+            "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+            IocType.ETHEREUM_ADDRESS,
+            "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+        ),
+        (
+            "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+            IocType.BITCOIN_ADDRESS,
+            "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        ),
+        (
+            "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy",
+            IocType.BITCOIN_ADDRESS,
+            "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy",
+        ),
+        (
+            "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+            IocType.BITCOIN_ADDRESS,
+            "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+        ),
+        (
+            "BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4",
+            IocType.BITCOIN_ADDRESS,
+            "BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4",
+        ),
+        (
+            "So11111111111111111111111111111111111111112",
+            IocType.SOLANA_ADDRESS,
+            "so11111111111111111111111111111111111111112",
+        ),
+        (
+            "0x9C9891EC9E8B4D1F9C9891EC9E8B4D1F9C9891EC9E8B4D1F9C9891EC9E8B4D1F",
+            IocType.TX_HASH,
+            "0x9c9891ec9e8b4d1f9c9891ec9e8b4d1f9c9891ec9e8b4d1f9c9891ec9e8b4d1f",
+        ),
+        ("Vitalik.eth", IocType.ENS_NAME, "vitalik.eth"),
     ],
 )
 def test_parse_supported_iocs(value: str, expected_type: IocType, expected_normalized: str) -> None:
@@ -40,7 +76,20 @@ def test_parse_supported_iocs(value: str, expected_type: IocType, expected_norma
     assert parsed.normalized == expected_normalized
 
 
-@pytest.mark.parametrize("value", ["", "not an ioc", "999.999.999.999", "http://"])
+@pytest.mark.parametrize(
+    "value",
+    [
+        "",
+        "not an ioc",
+        "999.999.999.999",
+        "http://",
+        "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5",
+        "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNb",
+        "0x1234",
+        "0x" + "1" * 65,
+        "So11111111111111111111111",
+    ],
+)
 def test_parse_unknown_iocs(value: str) -> None:
     assert parse_ioc(value).type == IocType.UNKNOWN
 

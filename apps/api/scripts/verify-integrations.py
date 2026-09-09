@@ -16,14 +16,24 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.agents.mcp.abuseipdb import AbuseIpdbMcpClient
+from app.agents.mcp.blockscout import BlockscoutMcpClient
+from app.agents.mcp.crtsh import CrtshMcpClient
+from app.agents.mcp.dexscreener import DexscreenerMcpClient
+from app.agents.mcp.etherscan import EtherscanMcpClient
+from app.agents.mcp.goplus import GoplusMcpClient
 from app.agents.mcp.greynoise import GreynoiseMcpClient
 from app.agents.mcp.hibp import HibpMcpClient
+from app.agents.mcp.hunterio import HunterioMcpClient
+from app.agents.mcp.intelx import IntelxMcpClient
+from app.agents.mcp.mempool import MempoolspaceMcpClient
 from app.agents.mcp.misp import MispMcpClient
 from app.agents.mcp.opencnam import OpenCnamMcpClient
 from app.agents.mcp.otx import OtxMcpClient
 from app.agents.mcp.rdap import RdapMcpClient
 from app.agents.mcp.shodan import ShodanMcpClient
 from app.agents.mcp.social import SocialPresenceMcpClient
+from app.agents.mcp.solana import SolanaMcpClient
+from app.agents.mcp.threatfox import ThreatfoxMcpClient
 from app.agents.mcp.urlhaus import UrlHausMcpClient
 from app.agents.mcp.urlscan import UrlScanMcpClient
 from app.agents.mcp.virustotal import VirusTotalMcpClient
@@ -62,6 +72,36 @@ PROBES = [
     ("mcp-social", lambda _s: SocialPresenceMcpClient(), "@octocat"),
     ("mcp-misp", _misp, "example.com"),
     ("mcp-urlhaus", _keyed(UrlHausMcpClient, "urlhaus_api_key"), "http://w-diarium.pw/malware.exe"),
+    ("mcp-intelx", _keyed(IntelxMcpClient, "intelx_api_key"), "8.8.8.8"),
+    ("mcp-hunterio", _keyed(HunterioMcpClient, "hunterio_api_key"), "test@example.com"),
+    ("mcp-crtsh", lambda _s: CrtshMcpClient(), "example.com"),
+    (
+        "mcp-threatfox",
+        _keyed(ThreatfoxMcpClient, "threatfox_api_key"),
+        "http://w-diarium.pw/malware.exe",
+    ),
+    (
+        "mcp-blockscout",
+        lambda _s: BlockscoutMcpClient(),
+        "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+    ),
+    (
+        "mcp-mempoolspace",
+        lambda _s: MempoolspaceMcpClient(),
+        "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+    ),
+    ("mcp-goplus", lambda _s: GoplusMcpClient(), "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE"),
+    (
+        "mcp-dexscreener",
+        lambda _s: DexscreenerMcpClient(),
+        "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE",
+    ),
+    ("mcp-solana", lambda _s: SolanaMcpClient(), "So11111111111111111111111111111111111111112"),
+    (
+        "mcp-etherscan",
+        _keyed(EtherscanMcpClient, "etherscan_api_key"),
+        "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+    ),
 ]
 
 

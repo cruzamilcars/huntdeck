@@ -31,6 +31,7 @@ _MOCK_NAMES = (
     "mcp-otx",
     "mcp-greynoise",
     "mcp-misp",
+    "mcp-opencti",
     "mcp-urlhaus",
     "mcp-rdap",
     "mcp-urlscan",
@@ -74,6 +75,7 @@ def _default_clients() -> dict[str, McpClient]:
     from app.agents.mcp.mempool import MempoolspaceMcpClient
     from app.agents.mcp.misp import MispMcpClient
     from app.agents.mcp.opencnam import OpenCnamMcpClient
+    from app.agents.mcp.opencti import OpenCtiMcpClient
     from app.agents.mcp.otx import OtxMcpClient
     from app.agents.mcp.rdap import RdapMcpClient
     from app.agents.mcp.shodan import ShodanMcpClient
@@ -96,6 +98,7 @@ def _default_clients() -> dict[str, McpClient]:
         "mcp-otx": MockMcpClient("mcp-otx"),
         "mcp-greynoise": MockMcpClient("mcp-greynoise"),
         "mcp-misp": MockMcpClient("mcp-misp"),
+        "mcp-opencti": MockMcpClient("mcp-opencti"),
         "mcp-urlhaus": MockMcpClient("mcp-urlhaus"),
         "mcp-rdap": RdapMcpClient(),
         "mcp-urlscan": UrlScanMcpClient(api_key=settings.urlscan_api_key),
@@ -130,6 +133,12 @@ def _default_clients() -> dict[str, McpClient]:
             base_url=settings.misp_url,
             api_key=settings.misp_api_key,
             verify_ssl=settings.misp_verify_ssl,
+        )
+    if settings.opencti_url and settings.opencti_api_key:
+        clients["mcp-opencti"] = OpenCtiMcpClient(
+            base_url=settings.opencti_url,
+            api_key=settings.opencti_api_key,
+            verify_ssl=settings.opencti_verify_ssl,
         )
     if settings.urlhaus_api_key:
         clients["mcp-urlhaus"] = UrlHausMcpClient(api_key=settings.urlhaus_api_key)
@@ -217,6 +226,7 @@ class InvestigationOrchestrator:
                     "mcp-otx",
                     "mcp-greynoise",
                     "mcp-misp",
+                    "mcp-opencti",
                 ]
             case IocType.IPV6:
                 # GreyNoise Community only accepts IPv4.
@@ -227,6 +237,7 @@ class InvestigationOrchestrator:
                     "mcp-rdap",
                     "mcp-otx",
                     "mcp-misp",
+                    "mcp-opencti",
                 ]
             case IocType.DOMAIN:
                 return [
@@ -236,6 +247,7 @@ class InvestigationOrchestrator:
                     "mcp-rdap",
                     "mcp-otx",
                     "mcp-misp",
+                    "mcp-opencti",
                     "mcp-urlhaus",
                     "mcp-crtsh",
                     "mcp-threatfox",
@@ -247,6 +259,7 @@ class InvestigationOrchestrator:
                     "mcp-urlscan",
                     "mcp-otx",
                     "mcp-misp",
+                    "mcp-opencti",
                     "mcp-urlhaus",
                     "mcp-threatfox",
                 ]
@@ -255,11 +268,12 @@ class InvestigationOrchestrator:
                     "mcp-virustotal",
                     "mcp-otx",
                     "mcp-misp",
+                    "mcp-opencti",
                     "mcp-urlhaus",
                     "mcp-threatfox",
                 ]
             case IocType.EMAIL:
-                return ["mcp-hibp", "mcp-hunterio", "mcp-intelx", "mcp-misp"]
+                return ["mcp-hibp", "mcp-hunterio", "mcp-intelx", "mcp-misp", "mcp-opencti"]
             case IocType.PHONE:
                 return ["mcp-intelx", "mcp-opencnam"]
             case IocType.SOCIAL_HANDLE:

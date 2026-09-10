@@ -23,6 +23,7 @@ KEY_ENV_VARS = {
     "mcp-urlscan": "URLSCAN_API_KEY",
     "mcp-greynoise": "GREYNOISE_API_KEY",
     "mcp-misp": "MISP_URL + MISP_API_KEY",
+    "mcp-opencti": "OPENCTI_URL + OPENCTI_API_KEY",
     "mcp-urlhaus": "URLHAUS_API_KEY",
     "mcp-intelx": "INTELX_API_KEY",
     "mcp-hunterio": "HUNTERIO_API_KEY",
@@ -67,6 +68,8 @@ async def system_providers(
 def _is_configured(name: str, settings) -> bool:
     if name == "mcp-misp":
         return bool(settings.misp_url and settings.misp_api_key)
+    if name == "mcp-opencti":
+        return bool(settings.opencti_url and settings.opencti_api_key)
     if name in ALWAYS_LIVE:
         return True
     env_var = KEY_ENV_VARS.get(name)

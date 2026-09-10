@@ -1,10 +1,34 @@
 import httpx
+import pytest
 from fastapi.testclient import TestClient
 
+from app.agents.mcp.mock_server import MockMcpClient
 from app.core.security import CurrentUser
 from app.domain.ioc.parser import parse_ioc
 from app.infrastructure.supabase_store import SupabaseStore
 from app.main import app
+from app.services.orchestrator import (
+    InvestigationOrchestrator,
+    get_orchestrator,
+)
+
+
+@pytest.fixture()
+def hermetic_orchestrator():
+    """Route investigations to deterministic mocks so no live API is hit."""
+    clients = {
+        provider_name: MockMcpClient(provider_name)
+        for provider_name in (
+            "mcp-virustotal",
+            "mcp-rdap",
+            "mcp-otx",
+            "mcp-opencti",
+            "mcp-misp",
+        )
+    }
+    app.dependency_overrides[get_orchestrator] = lambda: InvestigationOrchestrator(clients=clients)
+    yield
+    app.dependency_overrides.pop(get_orchestrator, None)
 
 
 def test_watchlist_add_list_remove(tmp_path) -> None:
@@ -41,7 +65,7 @@ def test_watchlist_add_is_idempotent(tmp_path) -> None:
     assert len(store.list_watch_items(user)) == 1
 
 
-def test_watchlist_api_crud() -> None:
+def test_watchlist_api_crud(hermetic_orchestrator) -> None:
     client = TestClient(app)
     for item in client.get("/api/v1/watchlist").json():
         client.delete(f"/api/v1/watchlist/{item['normalized_ioc']}")
@@ -68,7 +92,7 @@ def test_watchlist_api_rejects_unknown_ioc() -> None:
     assert response.status_code == 422
 
 
-def test_watchlist_recheck_runs_investigation() -> None:
+def test_watchlist_recheck_runs_investigation(hermetic_orchestrator) -> None:
     client = TestClient(app)
     client.post("/api/v1/watchlist", json={"ioc": "8.8.8.8"})
 

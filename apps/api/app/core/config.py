@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     )
     misp_api_key: str | None = None
     misp_verify_ssl: bool = True
+    opencti_url: str | None = Field(
+        default=None,
+        description="Base URL of your OpenCTI instance (e.g. https://opencti.example.org)",
+    )
+    opencti_api_key: str | None = None
+    opencti_verify_ssl: bool = True
     urlhaus_api_key: str | None = None
     intelx_api_key: str | None = None
     hunterio_api_key: str | None = None

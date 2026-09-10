@@ -127,7 +127,7 @@ El backend devuelve un JSON consolidado con estas secciones:
 > `apps/web/src/lib/api/types.ts`. Si el backend agrega un campo,
 > actualizar ambos lados en el mismo commit.
 
-## Proveedores MCP (22 adapters reales)
+## Proveedores MCP (23 adapters reales)
 
 | Provider | IOC cubiertos | Key |
 | --- | --- | --- |
@@ -141,6 +141,7 @@ El backend devuelve un JSON consolidado con estas secciones:
 | `mcp-otx` | ipv4, ipv6, domain, url, hashes | `OTX_API_KEY` |
 | `mcp-greynoise` | ipv4 | `GREYNOISE_API_KEY` |
 | `mcp-misp` | ipv4, ipv6, domain, url, hashes, email | tu instancia (`MISP_URL` + `MISP_API_KEY`) |
+| `mcp-opencti` | ipv4, ipv6, domain, url, hashes, email | tu instancia (`OPENCTI_URL` + `OPENCTI_API_KEY`, GraphQL) |
 | `mcp-urlhaus` | domain, url, hashes | `URLHAUS_API_KEY` |
 | `mcp-social` | social_handle | siempre activo (GitHub/Reddit/Telegram) |
 | `mcp-intelx` | email, phone, domain | `INTELX_API_KEY` |

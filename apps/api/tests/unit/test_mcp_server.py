@@ -29,6 +29,7 @@ def _mock_orchestrator() -> InvestigationOrchestrator:
             "mcp-otx",
             "mcp-greynoise",
             "mcp-misp",
+            "mcp-opencti",
             "mcp-urlhaus",
             "mcp-rdap",
             "mcp-urlscan",

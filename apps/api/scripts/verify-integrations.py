@@ -28,6 +28,7 @@ from app.agents.mcp.intelx import IntelxMcpClient
 from app.agents.mcp.mempool import MempoolspaceMcpClient
 from app.agents.mcp.misp import MispMcpClient
 from app.agents.mcp.opencnam import OpenCnamMcpClient
+from app.agents.mcp.opencti import OpenCtiMcpClient
 from app.agents.mcp.otx import OtxMcpClient
 from app.agents.mcp.rdap import RdapMcpClient
 from app.agents.mcp.shodan import ShodanMcpClient
@@ -53,6 +54,12 @@ def _misp(settings: Settings) -> object | None:
     return None
 
 
+def _opencti(settings: Settings) -> object | None:
+    if settings.opencti_url and settings.opencti_api_key:
+        return OpenCtiMcpClient(base_url=settings.opencti_url, api_key=settings.opencti_api_key)
+    return None
+
+
 PROBES = [
     ("mcp-virustotal", _keyed(VirusTotalMcpClient, "virustotal_api_key"), "8.8.8.8"),
     ("mcp-abuseipdb", _keyed(AbuseIpdbMcpClient, "abuseipdb_api_key"), "8.8.8.8"),
@@ -71,6 +78,7 @@ PROBES = [
     ("mcp-greynoise", _keyed(GreynoiseMcpClient, "greynoise_api_key"), "8.8.8.8"),
     ("mcp-social", lambda _s: SocialPresenceMcpClient(), "@octocat"),
     ("mcp-misp", _misp, "example.com"),
+    ("mcp-opencti", _opencti, "example.com"),
     ("mcp-urlhaus", _keyed(UrlHausMcpClient, "urlhaus_api_key"), "http://w-diarium.pw/malware.exe"),
     ("mcp-intelx", _keyed(IntelxMcpClient, "intelx_api_key"), "8.8.8.8"),
     ("mcp-hunterio", _keyed(HunterioMcpClient, "hunterio_api_key"), "test@example.com"),

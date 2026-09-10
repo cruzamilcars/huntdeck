@@ -17,6 +17,7 @@ _PROVIDER_NAMES = [
     "mcp-otx",
     "mcp-greynoise",
     "mcp-misp",
+    "mcp-opencti",
     "mcp-hibp",
     "mcp-hunterio",
     "mcp-intelx",
@@ -64,6 +65,7 @@ async def test_orchestrator_returns_tactical_contract_for_ipv4() -> None:
         "mcp-otx",
         "mcp-greynoise",
         "mcp-misp",
+        "mcp-opencti",
     ]
 
 
@@ -78,6 +80,7 @@ async def test_domain_route_adds_ct_and_threat_intel_providers() -> None:
         "mcp-rdap",
         "mcp-otx",
         "mcp-misp",
+        "mcp-opencti",
         "mcp-urlhaus",
         "mcp-crtsh",
         "mcp-threatfox",
@@ -94,6 +97,7 @@ async def test_url_route_adds_threatfox() -> None:
         "mcp-urlscan",
         "mcp-otx",
         "mcp-misp",
+        "mcp-opencti",
         "mcp-urlhaus",
         "mcp-threatfox",
     ]
@@ -109,6 +113,7 @@ async def test_hash_route_adds_threatfox() -> None:
         "mcp-virustotal",
         "mcp-otx",
         "mcp-misp",
+        "mcp-opencti",
         "mcp-urlhaus",
         "mcp-threatfox",
     ]
@@ -123,6 +128,7 @@ async def test_email_route_uses_hibp_hunterio_intelx_and_misp() -> None:
         "mcp-hunterio",
         "mcp-intelx",
         "mcp-misp",
+        "mcp-opencti",
     ]
     assert response.sources == response.mcp_servers_queried
 

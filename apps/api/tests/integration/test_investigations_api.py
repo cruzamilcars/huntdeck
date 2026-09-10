@@ -1,6 +1,30 @@
+import pytest
 from fastapi.testclient import TestClient
 
+from app.agents.mcp.mock_server import MockMcpClient
 from app.main import app
+from app.services.orchestrator import InvestigationOrchestrator, get_orchestrator
+
+
+@pytest.fixture(autouse=True)
+def hermetic_orchestrator():
+    """Investigations hit deterministic mocks; no live provider is called."""
+    clients = {
+        provider_name: MockMcpClient(provider_name)
+        for provider_name in (
+            "mcp-virustotal",
+            "mcp-shodan",
+            "mcp-abuseipdb",
+            "mcp-rdap",
+            "mcp-otx",
+            "mcp-greynoise",
+            "mcp-misp",
+            "mcp-opencti",
+        )
+    }
+    app.dependency_overrides[get_orchestrator] = lambda: InvestigationOrchestrator(clients=clients)
+    yield
+    app.dependency_overrides.pop(get_orchestrator, None)
 
 
 def test_investigation_endpoint_returns_unified_json() -> None:

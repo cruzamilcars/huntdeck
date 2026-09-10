@@ -157,6 +157,7 @@ Copy `.env.example` → split the variables into the files each app reads:
 | `OTX_API_KEY` | Optional. Real AlienVault OTX adapter (threat pulses for IP/domain/URL/hash). Falls back to mock when unset. |
 | `GREYNOISE_API_KEY` | Optional. Real GreyNoise Community adapter (IPv4 scanner classification: benign RIOT services vs malicious internet noise). Falls back to mock when unset. |
 | `MISP_URL` / `MISP_API_KEY` / `MISP_VERIFY_SSL` | Optional. Your MISP instance for org-internal indicator lookups (all IP/domain/URL/hash/email routes). Falls back to mock when unset. |
+| `OPENCTI_URL` / `OPENCTI_API_KEY` / `OPENCTI_VERIFY_SSL` | Optional. Your OpenCTI instance for org-internal observable lookups via GraphQL (IP/domain/URL/hash/email routes). Falls back to mock when unset. |
 | `URLHAUS_API_KEY` | Optional. Real URLhaus adapter (URL/domain/hash malware listings from abuse.ch). Falls back to mock when unset. |
 | `INTELX_API_KEY` | Optional. Real IntelX adapter (email/phone/domain breached-data exposure). Falls back to mock when unset. |
 | `HUNTERIO_API_KEY` | Optional. Real Hunter.io adapter (email deliverability/risk scoring). Falls back to mock when unset. |

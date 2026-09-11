@@ -91,8 +91,10 @@ Verificacion:
 
 ## Sprint 5 - Hardening y preparacion SaaS
 
-Estado: completado (nucleo). Pendientes con fecha futura: reglas de retencion de
-historial en produccion y persistencia real en Supabase desde el backend.
+Estado: completado. La persistencia real en Supabase desde el backend esta
+implementada (SupabaseStore via PostgREST + RPC atomica de cuota) y la
+retencion de historial aplica en el arranque via INVESTIGATION_RETENTION_DAYS
+(default 90 dias; 0 la desactiva) sobre SQLite y Supabase.
 
 Entregables:
 

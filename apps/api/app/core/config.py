@@ -17,6 +17,12 @@ class Settings(BaseSettings):
     watchlist_recheck_max: int = Field(
         default=3, description="Max watchlist auto-rechecks per listing request"
     )
+    investigation_retention_days: int = Field(
+        default=90,
+        description=(
+            "Delete investigations older than this many days at startup. 0 disables retention."
+        ),
+    )
     supabase_jwt_secret: str | None = None
     supabase_anon_key: str | None = None
     supabase_secret_key: str | None = None

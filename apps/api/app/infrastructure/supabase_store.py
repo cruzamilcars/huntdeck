@@ -16,7 +16,7 @@ Note: org/user identifiers must be legal UUIDs when talking to Supabase
 """
 
 import json
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 import httpx
@@ -59,6 +59,23 @@ class SupabaseStore:
             timeout=timeout,
             transport=transport,
         )
+
+    def prune_investigations(self, retention_days: int) -> int:
+        """Delete investigations older than ``retention_days`` days via PostgREST.
+
+        Returns the number of rows removed (from the Content-Range header).
+        ``retention_days <= 0`` disables retention (no-op).
+        """
+        if retention_days <= 0:
+            return 0
+        cutoff = (datetime.now(UTC) - timedelta(days=retention_days)).isoformat()
+        response = self._client.delete(
+            "/investigations",
+            params={"created_at": f"lt.{cutoff}"},
+            headers={"Prefer": "return=representation"},
+        )
+        response.raise_for_status()
+        return len(response.json())
 
     def close(self) -> None:
         self._client.close()

@@ -166,6 +166,7 @@ Copy `.env.example` → split the variables into the files each app reads:
 | `REDIS_URL` | Optional. Enables a shared Redis investigation cache across API workers/replicas. Falls back to in-memory cache when unset. |
 | `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | Optional. Enables the Supabase store (PostgREST persistence + atomic quota RPC). Falls back to local SQLite when unset. |
 | `DATABASE_PATH` | Local durable store path (default `data/huntdeck.db`). |
+| `INVESTIGATION_RETENTION_DAYS` | Delete investigation history older than this many days at API startup (default `90`; `0` disables retention). |
 
 ### Authentication (optional)
 
@@ -255,25 +256,19 @@ the roadmap in the open issues and the provider status note above.
 `npm run dev:web`, `npm run dev:api`, `npm run lint`, `npm test`, `pytest`.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow and check list.
 
-### CI status & alternatives
+### CI status
 
-The GitHub Actions workflow is valid but **cannot start**: the account is
-locked by an unresolved billing issue ("The job was not started because your
-account is locked due to a billing issue" — every job fails in ~2s with zero
-steps executed). Options:
+GitHub Actions runs the full gate on every push to `main` and on pull
+requests: API (ruff lint + format check + pytest), Web (eslint + vitest +
+next build), E2E (Playwright against the production build) and Docker image
+builds (API + web, compose config check). The same checks run locally via
+the pre-push hook:
 
-1. **Fix it at the source** — resolve the lock in
-   [Settings → Billing](https://github.com/settings/billing) or open a free
-   billing support ticket at <https://support.github.com/request>; the
-   existing workflow resumes untouched.
-2. **Cirrus CI (free for public repos)** — this repo ships `.cirrus.yml`
-   mirroring the same checks. Sign in at cirrus-ci.com, install its GitHub
-   App on the repository, and pushes/PRs build there immediately.
-3. **Local gate, no third party** — run the same checks before every push:
-   ```bash
-   git config core.hooksPath .githooks   # one-time activation
-   ```
-   `.githooks/pre-push` then runs API ruff + pytest and web lint + build.
+```bash
+git config core.hooksPath .githooks   # one-time activation
+```
+
+`.cirrus.yml` mirrors the workflow for redundancy (free for public repos).
 
 ### Provider status API
 

@@ -1,6 +1,6 @@
 import json
 import sqlite3
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from threading import Lock
 
@@ -253,6 +253,22 @@ class SqliteStore:
         }
 
     # --- watchlist -----------------------------------------------------------
+
+    def prune_investigations(self, retention_days: int) -> int:
+        """Delete investigations older than ``retention_days`` days.
+
+        Returns the number of rows removed. Callers pass 0 to disable
+        retention (no-op). Watchlist rows and quota usage are never touched.
+        """
+        if retention_days <= 0:
+            return 0
+        cutoff = (datetime.now(UTC) - timedelta(days=retention_days)).isoformat()
+        with self._lock:
+            cursor = self._connection.execute(
+                "DELETE FROM investigations WHERE created_at < ?", (cutoff,)
+            )
+            self._connection.commit()
+        return cursor.rowcount
 
     def add_watch_item(
         self,

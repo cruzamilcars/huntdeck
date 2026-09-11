@@ -108,3 +108,103 @@ def test_api_history_endpoint_returns_saved_investigations() -> None:
     assert rows
     assert rows[0]["normalized_ioc"] == "8.8.8.8"
     assert 0 <= rows[0]["risk_score"] <= 100
+
+
+def test_prune_deletes_only_older_than_retention(tmp_path) -> None:
+    store = SqliteStore(str(tmp_path / "retention.db"))
+    user = CurrentUser(user_id="u1", org_id="o1")
+
+    store.save_investigation(user, response_for("8.8.8.8"))
+
+    from datetime import UTC, datetime, timedelta
+
+    stale_created = (datetime.now(UTC) - timedelta(days=91)).isoformat()
+    with store._lock:
+        store._connection.execute(
+            "INSERT INTO investigations "
+            "(org_id, user_id, raw_ioc, normalized_ioc, ioc_type, risk_score, "
+            " severity, sources, result_json, used_byok, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                "o1",
+                "u1",
+                "example.com",
+                "example.com",
+                "domain",
+                18,
+                "low",
+                '["mock"]',
+                "{}",
+                0,
+                stale_created,
+            ),
+        )
+        store._connection.commit()
+
+    removed = store.prune_investigations(retention_days=90)
+
+    assert removed == 1
+    remaining = [row["normalized_ioc"] for row in store.list_investigations(user)]
+    assert remaining == ["8.8.8.8"]
+
+
+def test_prune_zero_days_is_disabled(tmp_path) -> None:
+    store = SqliteStore(str(tmp_path / "retention-off.db"))
+    user = CurrentUser(user_id="u1", org_id="o1")
+
+    store.save_investigation(user, response_for("8.8.8.8"))
+
+    from datetime import UTC, datetime, timedelta
+
+    stale_created = (datetime.now(UTC) - timedelta(days=365)).isoformat()
+    with store._lock:
+        store._connection.execute(
+            "UPDATE investigations SET created_at = ? WHERE normalized_ioc = '8.8.8.8'",
+            (stale_created,),
+        )
+        store._connection.commit()
+
+    assert store.prune_investigations(retention_days=0) == 0
+    assert len(store.list_investigations(user)) == 1
+
+
+def test_supabase_prune_sends_filtered_delete() -> None:
+    import httpx
+
+    from app.infrastructure.supabase_store import SupabaseStore
+
+    captured: list[tuple[str, str]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured.append((request.method, str(request.url)))
+        return httpx.Response(200, json=[{"id": "row-1"}, {"id": "row-2"}])
+
+    store = SupabaseStore(
+        url="https://project.supabase.co",
+        service_role_key="test-service-role",
+        transport=httpx.MockTransport(handler),
+    )
+
+    removed = store.prune_investigations(retention_days=90)
+
+    assert removed == 2
+    method, url = captured[0]
+    assert method == "DELETE"
+    assert "/rest/v1/investigations" in url
+    assert "created_at=lt." in url
+    assert store.prune_investigations(retention_days=0) == 0
+    assert captured == [(method, url)]  # disabled call made no request
+
+
+def test_startup_purge_is_best_effort(monkeypatch) -> None:
+    from app.main import _purge_expired_history
+
+    def boom(_days: int) -> int:
+        raise RuntimeError("store unavailable")
+
+    import app.domain.quota.service as quota_service
+
+    monkeypatch.setattr(quota_service, "get_quota_store", lambda: boom)
+
+    # Must not raise even when the store blows up at startup.
+    _purge_expired_history(90)
